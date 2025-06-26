@@ -1,57 +1,54 @@
 import 'package:flutter/material.dart';
 
 class ArticleDetailPage extends StatelessWidget {
-  final String title;
-  final String imagePath;
-  final String content;
+  final Map<String, String> article;
 
-  const ArticleDetailPage({
-    super.key,
-    required this.title,
-    required this.imagePath,
-    required this.content,
-  });
+  const ArticleDetailPage({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar agar pengguna bisa kembali
       appBar: AppBar(
-        title: Text("Artikel", style: Theme.of(context).textTheme.titleLarge),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 1,
+        // Judul AppBar diambil dari judul artikel
+        title: Text(article['title']!),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gambar utama artikel
             Image.asset(
-              imagePath,
+              article['image']!,
               width: double.infinity,
               height: 250,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 250,
+                  color: Colors.grey[200],
+                  child: const Center(
+                    child: Icon(Icons.broken_image, color: Colors.grey),
+                  ),
+                );
+              },
             ),
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Judul artikel
                   Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    article['title']!,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontSize: 24),
                   ),
                   const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Isi konten artikel
                   Text(
-                    content,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontSize: 18,
-                      height: 1.7, // Jarak antar baris agar mudah dibaca
-                    ),
+                    // Menampilkan konten lengkap artikel
+                    article['content']!,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(height: 1.5),
                   ),
                 ],
               ),

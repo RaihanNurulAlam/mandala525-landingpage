@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, depend_on_referenced_packages
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -67,6 +69,72 @@ class ProductContentState extends State<ProductContent> {
     );
   }
 
+  // --- WIDGET UNTUK FOOTER DAN IKON SOSIAL MEDIA (DIPERBAIKI) ---
+  Widget _buildFooter(BuildContext context) {
+    return Container(
+      color: const Color(0xFF2E4843),
+      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSocialIcon(
+                'assets/images/facebook.png',
+                'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
+              ),
+              _buildSocialIcon(
+                'assets/images/instagram.png',
+                'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
+              ),
+              _buildSocialIcon(
+                'assets/images/yutub.png',
+                'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
+              ),
+              _buildSocialIcon(
+                'assets/images/tiktok.png',
+                'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "© 2025 New Mandala 525 | Website Resmi Produk",
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialIcon(String assetPath, String linkUrl) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: InkWell(
+        onTap: () async {
+          if (await canLaunchUrl(Uri.parse(linkUrl))) {
+            await launchUrl(
+              Uri.parse(linkUrl),
+              mode: LaunchMode.externalApplication,
+            );
+          }
+        },
+        child: Image.asset(
+          assetPath,
+          width: 50,
+          height: 50,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.link, color: Colors.white, size: 24);
+          },
+        ),
+      ),
+    );
+  }
+
+  // --- SISA WIDGETS (TIDAK BERUBAH) ---
+
   Widget _buildIntroProductSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 24),
@@ -87,7 +155,12 @@ class ProductContentState extends State<ProductContent> {
               // Widget untuk gambar
               final imageWidget = ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.asset('assets/images/mdl1.jpg'),
+                child: Image.asset(
+                  'assets/images/mdl1.jpg',
+                  errorBuilder:
+                      (context, error, stackTrace) =>
+                          const Icon(Icons.image, size: 100),
+                ),
               );
 
               // Widget untuk Teks
@@ -114,9 +187,7 @@ class ProductContentState extends State<ProductContent> {
                       TabController? tabController = DefaultTabController.of(
                         context,
                       );
-                      if (tabController != null) {
-                        tabController.animateTo(1);
-                      }
+                      tabController.animateTo(1);
                     },
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text("Lihat Detail Produk"),
@@ -165,12 +236,6 @@ class ProductContentState extends State<ProductContent> {
         'name': 'Ibu Vitriani',
         'comment':
             '"Badan tidak mudah lelah dan kesemutan di tangan hilang. Produknya benar-benar terasa manfaatnya."',
-      },
-      {
-        'image': 'assets/images/inspiration3.jpg',
-        'name': 'Ibu Anisa',
-        'comment':
-            '"Saya berikan untuk orang tua, dan syukurlah kondisi kesehatannya semakin membaik dari hari ke hari."',
       },
     ];
 
@@ -227,6 +292,8 @@ class ProductContentState extends State<ProductContent> {
                                 backgroundImage: AssetImage(
                                   testimony['image']!,
                                 ),
+                                onBackgroundImageError:
+                                    (exception, stackTrace) {},
                               ),
                               const SizedBox(width: 12),
                               Text(
@@ -305,69 +372,6 @@ class ProductContentState extends State<ProductContent> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      color: const Color(0xFF2E4843),
-      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSocialIcon(
-                'https://static-00.iconduck.com/assets.00/facebook-icon-512x512-seb542ju.png',
-                'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
-              ),
-              _buildSocialIcon(
-                'https://static-00.iconduck.com/assets.00/instagram-icon-512x512-o0s3h3sr.png',
-                'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
-              ),
-              _buildSocialIcon(
-                'https://static-00.iconduck.com/assets.00/youtube-icon-2048x1442-9prg1I3q.png',
-                'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
-              ),
-              _buildSocialIcon(
-                'https://static-00.iconduck.com/assets.00/tiktok-icon-2048x2048-n4m03el3.png',
-                'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            "© 2025 New Mandala 525 | Website Resmi Produk",
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSocialIcon(String iconUrl, String linkUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: InkWell(
-        onTap: () async {
-          if (await canLaunchUrl(Uri.parse(linkUrl))) {
-            await launchUrl(
-              Uri.parse(linkUrl),
-              mode: LaunchMode.externalApplication,
-            );
-          }
-        },
-        child: Image.network(
-          iconUrl,
-          width: 24,
-          color: Colors.white,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(Icons.link, color: Colors.white, size: 24);
-          },
-        ),
       ),
     );
   }
@@ -623,7 +627,13 @@ class ProductContentState extends State<ProductContent> {
           const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.asset('assets/images/mdl2.jpg', fit: BoxFit.cover),
+            child: Image.asset(
+              'assets/images/mdl2.jpg',
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) =>
+                      const Icon(Icons.image, size: 100),
+            ),
           ),
         ],
       ),
@@ -682,7 +692,13 @@ class ProductContentState extends State<ProductContent> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Image.asset('assets/images/bpom_logo.png', height: 60),
+            Image.asset(
+              'assets/images/bpom_logo.png',
+              height: 60,
+              errorBuilder:
+                  (context, error, stackTrace) =>
+                      const Icon(Icons.verified, size: 60, color: Colors.green),
+            ),
           ],
         ),
       ),
