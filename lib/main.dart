@@ -2,14 +2,58 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // File ini akan di-generate oleh FlutterFire CLI
 
 // Impor file-file halaman yang sudah dipisahkan
 import 'pages/home_content.dart';
 import 'pages/distribution_page.dart';
 import 'pages/inspiration_page.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    // Inisialisasi Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const Mandala525App());
+  } catch (e) {
+    // Fallback jika Firebase gagal diinisialisasi
+    runApp(const ErrorApp());
+  }
+}
+
+// Widget fallback jika Firebase gagal diinisialisasi
+class ErrorApp extends StatelessWidget {
+  const ErrorApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 50, color: Colors.red),
+              const SizedBox(height: 20),
+              Text(
+                'Aplikasi sedang mengalami masalah teknis',
+                style: GoogleFonts.poppins(fontSize: 18),
+              ),
+              const SizedBox(height: 10),
+              const Text('Silakan coba lagi nanti'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // --- MAIN APP & THEME ---
-void main() => runApp(const Mandala525App());
 
 class Mandala525App extends StatelessWidget {
   const Mandala525App({super.key});
@@ -114,7 +158,6 @@ class Mandala525App extends StatelessWidget {
 }
 
 // --- MAIN SCREEN with Top Tab Navigation ---
-// Diubah menjadi StatefulWidget untuk mengelola TabController dan GlobalKey
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -125,7 +168,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  // GlobalKey untuk mengakses method dari ProductContentState
   final GlobalKey<ProductContentState> _homeContentKey =
       GlobalKey<ProductContentState>();
 
@@ -142,9 +184,7 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _buyNow() {
-    // Pindah ke tab Home (index 0)
     _tabController.animateTo(0);
-    // Setelah sedikit jeda agar tab sempat berpindah, panggil fungsi scroll
     Future.delayed(const Duration(milliseconds: 100), () {
       _homeContentKey.currentState?.scrollToForm();
     });
@@ -152,12 +192,10 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
-    // DefaultTabController tidak lagi dibutuhkan karena kita mengelola controller secara manual
     return Scaffold(
       appBar: AppBar(
         title: Image.asset('assets/images/MDL525.png', height: 40),
         actions: [
-          // Tombol "Beli Sekarang" dengan ikon keranjang belanja
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
             onPressed: _buyNow,
@@ -167,7 +205,7 @@ class _MainScreenState extends State<MainScreen>
           const SizedBox(width: 8),
         ],
         bottom: TabBar(
-          controller: _tabController, // Menggunakan controller yang kita buat
+          controller: _tabController,
           isScrollable: true,
           tabs: const [
             Tab(text: "Home"),
@@ -178,9 +216,8 @@ class _MainScreenState extends State<MainScreen>
         ),
       ),
       body: TabBarView(
-        controller: _tabController, // Menggunakan controller yang kita buat
+        controller: _tabController,
         children: [
-          // Memberikan key ke ProductContent agar bisa diakses
           ProductContent(key: _homeContentKey, showServingMethod: false),
           ProductContent(showServingMethod: true),
           const DistributionPage(),

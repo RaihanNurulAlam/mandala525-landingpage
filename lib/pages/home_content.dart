@@ -54,6 +54,9 @@ class ProductContentState extends State<ProductContent> {
         children: [
           _buildHeroSection(context),
           _buildProblemSection(context),
+          // --- PENAMBAHAN BAGIAN CAROUSEL MANFAAT ---
+          _buildBenefitsCarouselSection(context),
+          // --- BATAS PENAMBAHAN ---
           _buildIntroProductSection(context),
           _buildKeyIngredientsSection(context),
           _buildTestimonialsSection(context),
@@ -64,6 +67,90 @@ class ProductContentState extends State<ProductContent> {
             _buildFaqSection(context), // Penambahan FAQ
             _buildFooter(context),
           ],
+        ],
+      ),
+    );
+  }
+
+  // --- WIDGET BARU UNTUK CAROUSEL MANFAAT ---
+  Widget _buildBenefitsCarouselSection(BuildContext context) {
+    final List<Map<String, String>> benefits = [
+      {'image': 'assets/images/manfaat.jpeg', 'title': ''},
+      {'image': 'assets/images/kandungan.jpeg', 'title': ''},
+      {'image': 'assets/images/produk.jpeg', 'title': ''},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 50),
+      child: Column(
+        children: [
+          Text(
+            "Poster New Mandala 525",
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 600, // Sesuaikan tinggi carousel sesuai kebutuhan
+            child: PageView.builder(
+              controller: PageController(
+                viewportFraction: 0.8, // Menampilkan sebagian item lain
+              ),
+              itemCount: benefits.length,
+              itemBuilder: (context, index) {
+                final benefit = benefits[index];
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Card(
+                    elevation: 4,
+                    shadowColor: Colors.black26,
+                    clipBehavior:
+                        Clip.antiAlias, // Agar gambar mengikuti border radius
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: Image.asset(
+                            benefit['image']!,
+                            fit: BoxFit.cover,
+                            // Error builder jika gambar gagal dimuat
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.broken_image,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text("Gambar tidak tersedia"),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            benefit['title']!,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

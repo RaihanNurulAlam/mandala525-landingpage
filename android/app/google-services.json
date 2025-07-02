@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "230365101088",
+    "project_id": "newmandala525-baed3",
+    "storage_bucket": "newmandala525-baed3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230365101088:android:99876b0fa0505f76055045",
+        "android_client_info": {
+          "package_name": "com.example.mandala525"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzGP7MNhAcYTxFbB-pXadWjsCbBhMh_Mc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
