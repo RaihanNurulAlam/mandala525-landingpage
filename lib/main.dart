@@ -3,57 +3,62 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // File ini akan di-generate oleh FlutterFire CLI
+import 'firebase_options.dart';
 
-// Impor file-file halaman yang sudah dipisahkan
-import 'pages/home_content.dart';
+// Ganti dengan path halaman Anda yang sebenarnya
+import 'pages/home_page.dart';
+import 'pages/product_page.dart';
 import 'pages/distribution_page.dart';
 import 'pages/inspiration_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   try {
-    // Inisialisasi Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     runApp(const Mandala525App());
   } catch (e) {
-    // Fallback jika Firebase gagal diinisialisasi
-    runApp(const ErrorApp());
+    // Menampilkan pesan error jika Firebase gagal diinisialisasi
+    runApp(ErrorApp(error: e.toString()));
   }
 }
 
-// Widget fallback jika Firebase gagal diinisialisasi
 class ErrorApp extends StatelessWidget {
-  const ErrorApp({super.key});
+  final String? error;
+  const ErrorApp({super.key, this.error});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 50, color: Colors.red),
-              const SizedBox(height: 20),
-              Text(
-                'Aplikasi sedang mengalami masalah teknis',
-                style: GoogleFonts.poppins(fontSize: 18),
-              ),
-              const SizedBox(height: 10),
-              const Text('Silakan coba lagi nanti'),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 50, color: Colors.red),
+                const SizedBox(height: 20),
+                Text(
+                  'Aplikasi sedang mengalami masalah teknis',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Silakan coba lagi nanti.\nDetail: $error',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
-
-// --- MAIN APP & THEME ---
 
 class Mandala525App extends StatelessWidget {
   const Mandala525App({super.key});
@@ -85,6 +90,9 @@ class Mandala525App extends StatelessWidget {
           labelColor: primaryColor,
           unselectedLabelColor: Colors.grey.shade600,
           indicatorColor: primaryColor,
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          unselectedLabelStyle: GoogleFonts.poppins(),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -157,7 +165,7 @@ class Mandala525App extends StatelessWidget {
   }
 }
 
-// --- MAIN SCREEN with Top Tab Navigation ---
+// --- WIDGET MAINSCREEN DENGAN LAYOUT BARU ---
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -168,62 +176,145 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final GlobalKey<ProductContentState> _homeContentKey =
-      GlobalKey<ProductContentState>();
+  final GlobalKey<HomePageState> _homePageKey = GlobalKey<HomePageState>();
+
+  final List<Tab> _tabs = const [
+    Tab(text: "Beranda"),
+    Tab(text: "Produk"),
+    Tab(text: "Edukasi"),
+    Tab(text: "Artikel"),
+    Tab(text: "Beli Disini"),
+    Tab(text: "Kontak"),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(_handleTabSelection);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
     super.dispose();
   }
 
+  void _handleTabSelection() {
+    if (_tabController.index == 4) {
+      _buyNow();
+      _tabController.animateTo(0);
+    }
+  }
+
   void _buyNow() {
-    _tabController.animateTo(0);
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _homeContentKey.currentState?.scrollToForm();
+    if (_tabController.index != 0) {
+      _tabController.animateTo(0);
+    }
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _homePageKey.currentState?.scrollToForm();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Image.asset('assets/images/MDL525.png', height: 40),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: _buyNow,
-            tooltip: 'Beli Sekarang',
-            color: Theme.of(context).primaryColor,
-          ),
-          const SizedBox(width: 8),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: "Home"),
-            Tab(text: "Produk"),
-            Tab(text: "Distribusi"),
-            Tab(text: "Inspirasi"),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          ProductContent(key: _homeContentKey, showServingMethod: false),
-          ProductContent(showServingMethod: true),
-          const DistributionPage(),
-          const InspirationPage(),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isDesktop = constraints.maxWidth > 800;
+
+          return NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return <Widget>[
+                // Sliver untuk Logo dan Ikon Keranjang
+                SliverToBoxAdapter(
+                  child: Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Image.asset('assets/images/MDL525.png', height: 40),
+                        IconButton(
+                          icon: Icon(
+                            Icons.shopping_cart_outlined,
+                            color: Theme.of(context).primaryColor,
+                            size: 30,
+                          ),
+                          onPressed: _buyNow,
+                          tooltip: 'Beli Sekarang',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Sliver untuk TabBar yang menempel (sticky)
+                SliverPersistentHeader(
+                  delegate: _SliverAppBarDelegate(
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable:
+                          !isDesktop, // true di mobile, false di desktop
+                      tabs: _tabs,
+                    ),
+                  ),
+                  pinned: true, // Membuat TabBar menempel di atas
+                ),
+              ];
+            },
+            body: TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                HomePage(key: _homePageKey, tabController: _tabController),
+                const ProductPage(),
+                const InspirationPage(),
+                const DistributionPage(),
+                const Center(child: CircularProgressIndicator()),
+                const Center(child: Text("Halaman Kontak Dalam Pengembangan")),
+              ],
+            ),
+          );
+        },
       ),
     );
+  }
+}
+
+// Class Delegate untuk membuat SliverPersistentHeader
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+      ),
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }
