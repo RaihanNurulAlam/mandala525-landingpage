@@ -14,30 +14,158 @@ class DistributionPage extends StatefulWidget {
 
 class _DistributionPageState extends State<DistributionPage> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = "";
+
+  List<DocumentSnapshot> _allDistributors = [];
+  List<DocumentSnapshot> _filteredDistributors = [];
+
+  List<String> _uniqueProvinces = [];
+  List<String> _uniqueCities = [];
+  String? _selectedProvince;
+  String? _selectedCity;
+
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.toLowerCase();
-      });
-    });
+    _loadAllDistributors();
+    _searchController.addListener(_filterDistributors);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_filterDistributors);
     _searchController.dispose();
     super.dispose();
   }
 
-  // Fungsi untuk membuka WhatsApp
+  Future<void> _loadAllDistributors() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final approvedSnapshot =
+          await FirebaseFirestore.instance.collection('distributors').get();
+      final applicationSnapshot =
+          await FirebaseFirestore.instance
+              .collection('distributor_applications')
+              .get();
+
+      final allDocs = <String, DocumentSnapshot>{};
+
+      for (var doc in applicationSnapshot.docs) {
+        final data = doc.data();
+        final whatsapp = data['whatsapp'] as String?;
+        if (whatsapp != null && whatsapp.isNotEmpty) allDocs[whatsapp] = doc;
+      }
+      for (var doc in approvedSnapshot.docs) {
+        final data = doc.data();
+        final whatsapp = data['whatsapp'] as String?;
+        if (whatsapp != null && whatsapp.isNotEmpty) allDocs[whatsapp] = doc;
+      }
+
+      _allDistributors = allDocs.values.toList();
+      _allDistributors.sort((a, b) {
+        final nameA =
+            (a.data() as Map<String, dynamic>)['nama'] as String? ?? '';
+        final nameB =
+            (b.data() as Map<String, dynamic>)['nama'] as String? ?? '';
+        return nameA.compareTo(nameB);
+      });
+
+      _populateFilters();
+      _filterDistributors();
+    } catch (e) {
+      print("Error loading distributors: $e");
+      setState(() {
+        _errorMessage = "Gagal memuat data. Periksa koneksi internet Anda.";
+      });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _populateFilters() {
+    final provinces = <String>{};
+    for (var doc in _allDistributors) {
+      final data = doc.data() as Map<String, dynamic>;
+      final province = data['provinsi'] as String?;
+      if (province != null && province.isNotEmpty) provinces.add(province);
+    }
+    _uniqueProvinces = provinces.toList()..sort();
+  }
+
+  void _updateCityFilter() {
+    final cities = <String>{};
+    if (_selectedProvince != null) {
+      for (var doc in _allDistributors) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['provinsi'] == _selectedProvince) {
+          final city = data['kota'] as String?;
+          if (city != null && city.isNotEmpty) cities.add(city);
+        }
+      }
+    }
+    _uniqueCities = cities.toList()..sort();
+    if (!_uniqueCities.contains(_selectedCity)) {
+      _selectedCity = null;
+    }
+  }
+
+  void _filterDistributors() {
+    List<DocumentSnapshot> results = List.from(_allDistributors);
+
+    if (_selectedProvince != null) {
+      results =
+          results.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['provinsi'] == _selectedProvince;
+          }).toList();
+    }
+
+    if (_selectedCity != null) {
+      results =
+          results.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['kota'] == _selectedCity;
+          }).toList();
+    }
+
+    final query = _searchController.text.toLowerCase();
+    if (query.isNotEmpty) {
+      results =
+          results.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final name = (data['nama'] as String? ?? '').toLowerCase();
+            final city = (data['kota'] as String? ?? '').toLowerCase();
+            final province = (data['provinsi'] as String? ?? '').toLowerCase();
+            return name.contains(query) ||
+                city.contains(query) ||
+                province.contains(query);
+          }).toList();
+    }
+
+    setState(() => _filteredDistributors = results);
+  }
+
+  Future<void> _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+      }
+    }
+  }
+
   void _launchWhatsApp(String phone) async {
-    // Pastikan nomor diawali dengan 62 dan tanpa spasi/simbol
     final String formattedPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
     const String message =
-        "Halo, saya tertarik dengan produk New Mandala 525. Apakah saya bisa mendapatkan informasi lebih lanjut?";
+        "Halo, saya tertarik dengan produk New Mandala 525...";
     final Uri whatsappUrl = Uri.parse(
       "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(message)}",
     );
@@ -48,9 +176,7 @@ class _DistributionPageState extends State<DistributionPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              "Tidak dapat membuka WhatsApp. Pastikan aplikasi terinstal.",
-            ),
+            content: Text("Tidak dapat membuka WhatsApp."),
             backgroundColor: Colors.red,
           ),
         );
@@ -61,113 +187,294 @@ class _DistributionPageState extends State<DistributionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Latar belakang yang netral
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                title: const Text("Jaringan Distributor"),
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                surfaceTintColor: Colors.transparent,
-                pinned: true,
-                floating: true,
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(70.0),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: "Cari nama, kota, atau provinsi...",
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                          borderSide: BorderSide.none,
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text(""),
+        elevation: 0,
+        backgroundColor: Colors.grey[50],
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: RefreshIndicator(
+            onRefresh: _loadAllDistributors,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        child: Text(
+                          "Jaringan Distributor",
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ];
-          },
-          body: StreamBuilder<QuerySnapshot>(
-            // Stream data dari Firestore
-            stream:
-                FirebaseFirestore.instance
-                    .collection('distributors')
-                    .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return const Center(
-                  child: Text("Terjadi kesalahan. Coba lagi nanti."),
+                    SliverToBoxAdapter(child: _buildFilterSection()),
+                    _buildDistributorSliverContent(constraints),
+                    SliverToBoxAdapter(
+                      child: _buildMarketplaceSection(context),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
                 );
-              }
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(
-                  child: Text("Belum ada distributor terdaftar."),
-                );
-              }
-
-              // Filter data berdasarkan query pencarian
-              final filteredDocs =
-                  snapshot.data!.docs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final name = (data['nama'] as String? ?? '').toLowerCase();
-                    final city = (data['kota'] as String? ?? '').toLowerCase();
-                    final province =
-                        (data['provinsi'] as String? ?? '').toLowerCase();
-                    return name.contains(_searchQuery) ||
-                        city.contains(_searchQuery) ||
-                        province.contains(_searchQuery);
-                  }).toList();
-
-              if (filteredDocs.isEmpty) {
-                return const Center(
-                  child: Text(
-                    "Distributor tidak ditemukan.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: filteredDocs.length,
-                itemBuilder: (context, index) {
-                  final doc = filteredDocs[index];
-                  final data = doc.data() as Map<String, dynamic>;
-                  return DistributorCard(
-                    data: data,
-                    onWhatsAppTap:
-                        () => _launchWhatsApp(data['whatsapp'] ?? ''),
-                  );
-                },
-              );
-            },
+              },
+            ),
           ),
         ),
       ),
-      // Tombol untuk mendaftar sebagai distributor
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showRegistrationDialog(context),
+        onPressed: () => _showRegistrationModal(context),
         label: const Text("Gabung Jadi Distributor"),
         icon: const Icon(Icons.add_business_outlined),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Theme.of(context).primaryColor,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 
-  // Menampilkan modal untuk pendaftaran
-  void _showRegistrationDialog(BuildContext context) {
+  Widget _buildFilterSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: "Cari nama, kota, atau provinsi...",
+              prefixIcon: const Icon(Icons.search, size: 20),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 20,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDropdown(
+                  hint: "Pilih Provinsi",
+                  value: _selectedProvince,
+                  items: _uniqueProvinces,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedProvince = value;
+                      _selectedCity = null;
+                      _updateCityFilter();
+                    });
+                    _filterDistributors();
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDropdown(
+                  hint: "Pilih Kota",
+                  value: _selectedCity,
+                  items: _uniqueCities,
+                  onChanged:
+                      _selectedProvince == null
+                          ? null
+                          : (value) {
+                            setState(() => _selectedCity = value);
+                            _filterDistributors();
+                          },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required String hint,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?>? onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      hint: Text(hint),
+      isExpanded: true,
+      items:
+          items.map((item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Text(item, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDistributorSliverContent(BoxConstraints constraints) {
+    if (_isLoading) {
+      return const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_errorMessage != null) {
+      return SliverFillRemaining(child: Center(child: Text(_errorMessage!)));
+    }
+    if (_filteredDistributors.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 48.0),
+          child: Center(
+            child: Text(
+              "Distributor tidak ditemukan.",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // --- [FIX] Mengganti layout desktop menjadi Wrap dengan lebar card yang tetap ---
+    if (constraints.maxWidth > 600) {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        sliver: SliverToBoxAdapter(
+          child: Wrap(
+            spacing: 16.0,
+            runSpacing: 16.0,
+            alignment: WrapAlignment.center, // Pusatkan kartu-kartu
+            children:
+                _filteredDistributors.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  // Beri lebar tetap pada kartu agar responsif secara alami
+                  return SizedBox(
+                    width: 350,
+                    child: DistributorCard(
+                      data: data,
+                      onWhatsAppTap:
+                          () => _launchWhatsApp(data['whatsapp'] ?? ''),
+                    ),
+                  );
+                }).toList(),
+          ),
+        ),
+      );
+    } else {
+      // Tampilan mobile tetap menggunakan SliverList
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final data =
+                _filteredDistributors[index].data() as Map<String, dynamic>;
+            return DistributorCard(
+              data: data,
+              onWhatsAppTap: () => _launchWhatsApp(data['whatsapp'] ?? ''),
+            );
+          }, childCount: _filteredDistributors.length),
+        ),
+      );
+    }
+  }
+
+  Widget _buildMarketplaceSection(BuildContext context) {
+    final List<Map<String, String>> marketplaces = [
+      {'image': 'assets/images/img-shopee.jpg', 'url': 'https://shopee.co.id'},
+      {
+        'image': 'assets/images/img-tokopedia.jpg',
+        'url': 'https://www.tokopedia.com',
+      },
+      {
+        'image': 'assets/images/img-lazada.jpg',
+        'url': 'https://www.lazada.co.id',
+      },
+    ];
+
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
+      margin: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        children: [
+          Text(
+            "Belanja Susu New Mandala 525",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Dapatkan susu New Mandala 525 di berbagai marketplace kesayangan anda",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+          const SizedBox(height: 32),
+          Wrap(
+            spacing: 24.0,
+            runSpacing: 24.0,
+            alignment: WrapAlignment.center,
+            children:
+                marketplaces.map((item) {
+                  return InkWell(
+                    onTap: () => _launchURL(item['url']!),
+                    child: Image.asset(
+                      item['image']!,
+                      height: 60,
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            height: 60,
+                            width: 120,
+                            color: Colors.grey.shade200,
+                            child: Center(
+                              child: Text(
+                                item['image']!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 10),
+                              ),
+                            ),
+                          ),
+                    ),
+                  );
+                }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRegistrationModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -175,17 +482,26 @@ class _DistributionPageState extends State<DistributionPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return const DistributorRegistrationForm();
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.8,
+          maxChildSize: 0.9,
+          minChildSize: 0.5,
+          builder: (_, scrollController) {
+            return DistributorRegistrationForm(
+              scrollController: scrollController,
+              onSuccess: _loadAllDistributors,
+            );
+          },
+        );
       },
     );
   }
 }
 
-// Widget untuk setiap kartu distributor
 class DistributorCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final VoidCallback onWhatsAppTap;
-
   const DistributorCard({
     super.key,
     required this.data,
@@ -194,48 +510,90 @@ class DistributorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isApplication = data['status'] == 'pending';
+    final Color chipColor =
+        isApplication ? Colors.amber.shade700 : Colors.green.shade700;
+    final String chipLabel = isApplication ? 'Pendaftar' : 'Agen Resmi';
+
     return Card(
+      color: Colors.white,
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shadowColor: Colors.black.withOpacity(0.08),
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              data['nama'] ?? 'Nama Distributor',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    data['nama'] ?? 'Nama Distributor',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Chip(
+                  label: Text(
+                    chipLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                  backgroundColor: chipColor,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  labelPadding: EdgeInsets.zero,
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             InfoRow(
               icon: Icons.location_on_outlined,
-              text: data['alamat'] ?? 'Alamat tidak tersedia',
-            ),
-            const SizedBox(height: 8),
-            InfoRow(
-              icon: Icons.map_outlined,
               text: "${data['kota'] ?? ''}, ${data['provinsi'] ?? ''}",
             ),
-            const Divider(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onWhatsAppTap,
-                icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 20),
-                label: const Text("Pesan via WhatsApp"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: Color.fromARGB(255, 230, 230, 230)),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: InfoRow(
+                    icon: FontAwesomeIcons.whatsapp,
+                    text: data['whatsapp'] ?? 'Nomor tidak ada',
+                    isBold: true,
                   ),
                 ),
-              ),
+                ElevatedButton.icon(
+                  onPressed: onWhatsAppTap,
+                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                  label: const Text("Chat"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.green.shade700,
+                    elevation: 1,
+                    shadowColor: Colors.black.withOpacity(0.1),
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -244,23 +602,32 @@ class DistributorCard extends StatelessWidget {
   }
 }
 
-// Widget bantuan untuk baris info (ikon + teks)
 class InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  const InfoRow({super.key, required this.icon, required this.text});
+  final bool isBold;
+  const InfoRow({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.isBold = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 16, color: Colors.grey[600]),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[800],
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ),
       ],
@@ -268,9 +635,14 @@ class InfoRow extends StatelessWidget {
   }
 }
 
-// Widget formulir pendaftaran yang stateful
 class DistributorRegistrationForm extends StatefulWidget {
-  const DistributorRegistrationForm({super.key});
+  final VoidCallback onSuccess;
+  final ScrollController scrollController;
+  const DistributorRegistrationForm({
+    super.key,
+    required this.onSuccess,
+    required this.scrollController,
+  });
 
   @override
   State<DistributorRegistrationForm> createState() =>
@@ -288,9 +660,10 @@ class _DistributorRegistrationFormState
   bool _isLoading = false;
 
   Future<void> _submitRegistration() async {
+    FocusScope.of(context).unfocus();
+
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-
       try {
         await FirebaseFirestore.instance
             .collection('distributor_applications')
@@ -303,9 +676,9 @@ class _DistributorRegistrationFormState
               'status': 'pending',
               'timestamp': FieldValue.serverTimestamp(),
             });
-
         if (mounted) {
-          Navigator.pop(context); // Tutup modal setelah berhasil
+          Navigator.pop(context);
+          widget.onSuccess();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -316,19 +689,16 @@ class _DistributorRegistrationFormState
           );
         }
       } catch (e) {
-        print("Error submitting registration: $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Pendaftaran gagal. Mohon coba lagi."),
+              content: Text("Pendaftaran gagal. Silakan coba lagi."),
               backgroundColor: Colors.red,
             ),
           );
         }
       } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -345,114 +715,190 @@ class _DistributorRegistrationFormState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        20,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF9F9F9),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Bergabung Menjadi Distributor",
-                style: Theme.of(context).textTheme.headlineSmall,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 16),
-              const Text("Syarat & Ketentuan:"),
-              const Text(
-                "• Biaya Pendaftaran: Rp 500.000 (mendapatkan paket produk awal).\n"
-                "• Bersedia mengikuti aturan dan harga jual yang ditetapkan.\n"
-                "• Tim kami akan melakukan verifikasi setelah pendaftaran.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const Divider(height: 24),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: "Nama Lengkap / Nama Toko",
-                ),
-                validator:
-                    (value) =>
-                        value!.isEmpty ? "Nama tidak boleh kosong" : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: "Nomor WhatsApp (Format: 628xxxx)",
-                ),
-                keyboardType: TextInputType.phone,
-                validator:
-                    (value) =>
-                        value!.isEmpty
-                            ? "Nomor WhatsApp tidak boleh kosong"
-                            : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(labelText: "Alamat Lengkap"),
-                validator:
-                    (value) =>
-                        value!.isEmpty ? "Alamat tidak boleh kosong" : null,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _cityController,
-                      decoration: const InputDecoration(labelText: "Kota"),
-                      validator:
-                          (value) =>
-                              value!.isEmpty ? "Kota tidak boleh kosong" : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _provinceController,
-                      decoration: const InputDecoration(labelText: "Provinsi"),
-                      validator:
-                          (value) =>
-                              value!.isEmpty
-                                  ? "Provinsi tidak boleh kosong"
-                                  : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submitRegistration,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child:
-                      _isLoading
-                          ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                          : const Text("Daftar Sekarang"),
-                ),
-              ),
-            ],
+            ),
           ),
+          Expanded(
+            child: ListView(
+              controller: widget.scrollController,
+              padding: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              children: [
+                _buildSectionTitle("Keuntungan Menjadi Distributor"),
+                const SizedBox(height: 8),
+                const ListTile(
+                  leading: Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                  ),
+                  title: Text("Harga Khusus Distributor"),
+                  subtitle: Text("Dapatkan margin keuntungan yang menarik."),
+                ),
+                const ListTile(
+                  leading: Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                  ),
+                  title: Text("Dukungan Pemasaran"),
+                  subtitle: Text(
+                    "Materi promosi eksklusif untuk membantu penjualan Anda.",
+                  ),
+                ),
+                const ListTile(
+                  leading: Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                  ),
+                  title: Text("Prioritas Stok Produk"),
+                  subtitle: Text(
+                    "Jadilah yang pertama mendapatkan produk terbaru.",
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+                _buildSectionTitle("Syarat & Ketentuan"),
+                const SizedBox(height: 8),
+                const ListTile(
+                  leading: Text("1."),
+                  title: Text("Komitmen Pembelian Awal"),
+                  subtitle: Text(
+                    "Diperlukan pembelian minimum pada pendaftaran pertama.",
+                  ),
+                ),
+                const ListTile(
+                  leading: Text("2."),
+                  title: Text("Memiliki Lokasi Usaha"),
+                  subtitle: Text("Memiliki toko fisik atau online yang aktif."),
+                ),
+                const ListTile(
+                  leading: Text("3."),
+                  title: Text("Menjaga Nama Baik Brand"),
+                  subtitle: Text(
+                    "Berkomitmen untuk tidak merusak citra produk.",
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+                _buildSectionTitle("Formulir Pendaftaran"),
+                const SizedBox(height: 16),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildTextFormField(
+                        controller: _nameController,
+                        labelText: "Nama Lengkap / Toko",
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTextFormField(
+                        controller: _phoneController,
+                        labelText: "Nomor WhatsApp (cth: 62812...)",
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTextFormField(
+                        controller: _addressController,
+                        labelText: "Alamat Lengkap",
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextFormField(
+                              controller: _cityController,
+                              labelText: "Kota",
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTextFormField(
+                              controller: _provinceController,
+                              labelText: "Provinsi",
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _submitRegistration,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child:
+                              _isLoading
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                  : const Text("Daftar Sekarang"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String labelText,
+    TextInputType? keyboardType,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
         ),
       ),
+      keyboardType: keyboardType,
+      validator: (v) => v == null || v.isEmpty ? "Kolom ini wajib diisi" : null,
     );
   }
 }

@@ -352,9 +352,10 @@ class HomePageState extends State<HomePage> {
             child: Text(
               "Apa Kata Mereka?",
               textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
             ),
           ),
           const SizedBox(height: 40),
@@ -450,10 +451,11 @@ class HomePageState extends State<HomePage> {
       child: Column(
         children: [
           Text(
-            "Belanja Susu New Mandala",
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            "Belanja Susu New Mandala 525",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -520,9 +522,10 @@ class HomePageState extends State<HomePage> {
           Text(
             "Manfaat New Mandala 525",
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
           ),
           const SizedBox(height: 48),
           Wrap(
@@ -571,9 +574,10 @@ class HomePageState extends State<HomePage> {
           Text(
             "Kenapa Harus New Mandala 525?",
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
           ),
           const SizedBox(height: 32),
           Card(
@@ -619,14 +623,15 @@ class HomePageState extends State<HomePage> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
+      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
       child: Column(
         children: [
           Text(
             "Kandungan Utama",
-            style: Theme.of(
-              context,
-            ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
           ),
           const SizedBox(height: 16),
           Text(

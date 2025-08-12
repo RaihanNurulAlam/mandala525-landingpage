@@ -84,14 +84,6 @@ class Mandala525App extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        tabBarTheme: TabBarTheme(
-          labelColor: primaryColor,
-          unselectedLabelColor: Colors.grey.shade600,
-          indicatorColor: primaryColor,
-          indicatorSize: TabBarIndicatorSize.tab,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          unselectedLabelStyle: GoogleFonts.poppins(),
-        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryColor,
@@ -173,7 +165,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final GlobalKey<HomePageState> _homePageKey = GlobalKey<HomePageState>();
+
+  // Variabel _homePageKey dan fungsi _buyNow dihapus karena tidak lagi diperlukan untuk ikon keranjang.
 
   final List<Tab> _tabs = const [
     Tab(text: "Beranda"),
@@ -194,15 +187,6 @@ class _MainScreenState extends State<MainScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _buyNow() {
-    if (_tabController.index != 0) {
-      _tabController.animateTo(0);
-    }
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _homePageKey.currentState?.scrollToForm();
-    });
   }
 
   @override
@@ -232,8 +216,12 @@ class _MainScreenState extends State<MainScreen>
                             color: Theme.of(context).primaryColor,
                             size: 30,
                           ),
-                          onPressed: _buyNow,
-                          tooltip: 'Beli Sekarang',
+                          // ## PERUBAHAN DI SINI ##
+                          // Arahkan ke tab "Beli Disini" (index 4) saat diklik.
+                          onPressed: () {
+                            _tabController.animateTo(4);
+                          },
+                          tooltip: 'Beli Disini',
                         ),
                       ],
                     ),
@@ -256,7 +244,8 @@ class _MainScreenState extends State<MainScreen>
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 // 0: Beranda
-                HomePage(key: _homePageKey, tabController: _tabController),
+                // 'key' tidak lagi diperlukan di sini
+                HomePage(tabController: _tabController),
                 // 1: Produk
                 ProductPage(tabController: _tabController),
                 // 2: Edukasi

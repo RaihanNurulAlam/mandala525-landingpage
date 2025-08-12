@@ -23,14 +23,6 @@ class InspirationPage extends StatelessWidget {
       'content':
           'Ibu Vitriani (70 tahun) sering membuat tetangganya kagum karena vitalitasnya. Saat yang lain sering mengeluh pegal linu, beliau masih aktif mengikuti senam setiap pagi. Rahasianya ternyata sederhana: pola hidup sehat dan asupan nutrisi yang tepat. "Selain makan sayur dan buah, saya rutin minum susu kedelai yang kaya akan kalsium dan isoflavon," ungkapnya. Menurutnya, nutrisi dari kedelai membantunya menjaga kepadatan tulang dan memberikan energi yang cukup untuk beraktivitas sepanjang hari. Beliau adalah bukti nyata bahwa menjaga kesehatan sejak dini adalah investasi terbaik untuk masa tua.',
     },
-    // {
-    //   'image': 'assets/images/inspiration3.jpg',
-    //   'title': 'Pentingnya Menjaga Kesehatan Tulang Sejak Dini',
-    //   'summary':
-    //       'Osteoporosis bukanlah penyakit orang tua saja. Pelajari cara mencegahnya dan pentingnya nutrisi dari kedelai.',
-    //   'content':
-    //       'Banyak yang mengira osteoporosis atau pengeroposan tulang hanya menyerang lansia. Faktanya, kesehatan tulang dibangun sejak masa muda. Kurangnya asupan kalsium dan vitamin D di usia produktif dapat mempercepat risiko osteoporosis di kemudian hari. Salah satu sumber nutrisi terbaik untuk tulang adalah kedelai. Kedelai mengandung isoflavon, senyawa yang strukturnya mirip estrogen dan dapat membantu menjaga kepadatan tulang, terutama pada wanita pasca-menopause. Memulai kebiasaan mengonsumsi produk olahan kedelai seperti susu atau suplemen adalah langkah cerdas untuk investasi kesehatan tulang jangka panjang.',
-    // },
   ];
 
   @override
@@ -42,7 +34,7 @@ class InspirationPage extends StatelessWidget {
         elevation: 1,
         centerTitle: true,
       ),
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white, // Latar belakang utama putih
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < 650) {
@@ -90,7 +82,7 @@ class InspirationPage extends StatelessWidget {
   }
 }
 
-// Kartu Artikel
+// Kartu Artikel dengan shadow yang lebih jelas
 class ArticleCard extends StatelessWidget {
   final Map<String, String> article;
 
@@ -99,10 +91,13 @@ class ArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white, // Kartu berwarna putih
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
+      elevation: 6, // Nilai shadow ditingkatkan agar terlihat
+      shadowColor: Colors.black.withOpacity(
+        0.15,
+      ), // Warna shadow dengan opasitas
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
         onTap: () {
@@ -181,6 +176,7 @@ class ArticleCard extends StatelessWidget {
   }
 }
 
+// Halaman Detail Artikel
 class ArticleDetailPage extends StatelessWidget {
   final Map<String, String> article;
 
@@ -189,7 +185,7 @@ class ArticleDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white, // Latar belakang detail putih
       appBar: AppBar(
         title: Text(
           article['title']!,
@@ -205,9 +201,12 @@ class ArticleDetailPage extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Card(
+              color: Colors.white, // Kartu detail berwarna putih
               clipBehavior: Clip.antiAlias,
-              elevation: 4,
-              shadowColor: Colors.black.withOpacity(0.1),
+              elevation: 6, // Nilai shadow ditingkatkan agar terlihat
+              shadowColor: Colors.black.withOpacity(
+                0.15,
+              ), // Warna shadow dengan opasitas
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),

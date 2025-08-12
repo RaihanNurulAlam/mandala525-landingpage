@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+// import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,16 +15,172 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildKeyIngredientsSection(context),
-          _buildServingMethodSection(context),
-          _buildCertificationSection(context),
-          _buildProductBundleSection(context),
-          _buildFooter(context),
-        ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // _buildHomepageBanner(context),
+              // const SizedBox(height: 30),
+              _buildIntroductionSection(context),
+              const SizedBox(height: 30),
+              _buildKeyIngredientsSection(context),
+              _buildServingMethodSection(context),
+              _buildCertificationSection(context),
+              _buildProductBundleSection(context),
+              _buildFooter(context),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildIntroductionSection(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isDesktop = constraints.maxWidth > 800;
+
+        final introDetails = Column(
+          crossAxisAlignment:
+              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15.0),
+              child: Image.asset(
+                'assets/images/mdl1.jpg',
+                height: 300,
+                width: isDesktop ? double.infinity : 300,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      height: 300,
+                      width: isDesktop ? double.infinity : 300,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(
+                          Icons.local_florist,
+                          color: Colors.grey,
+                          size: 50,
+                        ),
+                      ),
+                    ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Apa itu New Mandala 525?",
+              textAlign: isDesktop ? TextAlign.start : TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Minuman serbuk kedelai instan yang terbuat dari kacang kedelai pilihan. Minuman ini diproses secara alami dan mengandung protein nabati yang sangat tinggi, mengandung serat, asam lemak tak jenuh, zat besi, dan isoflavon. Baik untuk jantung, bantu turunkan kolesterol, dan menjaga daya tahan tubuh.",
+              textAlign: isDesktop ? TextAlign.start : TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                height: 1.6,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        );
+
+        final ingredientsList = Column(
+          crossAxisAlignment:
+              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            if (isDesktop) const SizedBox(height: 80),
+            Text(
+              "Bahan Utama Pilihan",
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            _buildIngredientItem(
+              context,
+              Icons.eco,
+              "Kedelai GMO",
+              "Kaya akan protein nabati dan isoflavon untuk kesehatan tulang, jantung, dan keseimbangan hormon.",
+            ),
+            const SizedBox(height: 20),
+            _buildIngredientItem(
+              context,
+              Icons.grass,
+              "Daun Pandan Asli",
+              "Memberikan aroma wangi alami yang menenangkan serta memiliki manfaat sebagai antioksidan.",
+            ),
+          ],
+        );
+        if (isDesktop) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 20.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 3, child: introDetails),
+                const SizedBox(width: 40),
+                Expanded(flex: 2, child: ingredientsList),
+              ],
+            ),
+          );
+        } else {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 20.0,
+            ),
+            child: Column(
+              children: [
+                introDetails,
+                const SizedBox(height: 40),
+                ingredientsList,
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildIngredientItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Theme.of(context).primaryColor, size: 30),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -160,7 +317,6 @@ class _ProductPageState extends State<ProductPage> {
                 ),
               ),
               const SizedBox(height: 32),
-
               ElevatedButton.icon(
                 onPressed: () {
                   widget.tabController.animateTo(4);
@@ -452,6 +608,56 @@ class _ProductPageState extends State<ProductPage> {
       ),
     );
   }
+
+  // Widget _buildHomepageBanner(BuildContext context) {
+  //   final List<Map<String, String>> banners = [
+  //     {'background': 'assets/images/produk.jpeg'},
+  //     {'background': 'assets/images/kandungan.jpeg'},
+  //     {'background': 'assets/images/gejala.jpeg'},
+  //   ];
+
+  //   return CarouselSlider.builder(
+  //     itemCount: banners.length,
+  //     options: CarouselOptions(
+  //       height: 350,
+  //       autoPlay: banners.length > 1,
+  //       autoPlayInterval: const Duration(seconds: 4),
+  //       viewportFraction: 1.0,
+  //     ),
+  //     itemBuilder: (context, index, realIndex) {
+  //       final banner = banners[index];
+  //       return Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //         child: Card(
+  //           margin: const EdgeInsets.symmetric(vertical: 4.0),
+  //           elevation: 4,
+  //           shadowColor: Colors.black.withOpacity(0.2),
+  //           clipBehavior: Clip.antiAlias,
+  //           shape: RoundedRectangleBorder(
+  //             borderRadius: BorderRadius.circular(15.0),
+  //           ),
+  //           child: Stack(
+  //             fit: StackFit.expand,
+  //             children: [
+  //               Image.asset(
+  //                 banner['background']!,
+  //                 fit: BoxFit.cover,
+  //                 errorBuilder:
+  //                     (context, error, stackTrace) => const Center(
+  //                       child: Icon(
+  //                         Icons.broken_image_outlined,
+  //                         color: Colors.grey,
+  //                         size: 50,
+  //                       ),
+  //                     ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildSocialIcon(String assetPath, String linkUrl) {
     return Padding(
