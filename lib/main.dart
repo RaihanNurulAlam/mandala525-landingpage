@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
-// Ganti dengan path halaman Anda yang sebenarnya
 import 'pages/home_page.dart';
 import 'pages/product_page.dart';
 import 'pages/distribution_page.dart';
 import 'pages/inspiration_page.dart';
+import 'pages/edukasi_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +18,6 @@ void main() async {
     );
     runApp(const Mandala525App());
   } catch (e) {
-    // Menampilkan pesan error jika Firebase gagal diinisialisasi
     runApp(ErrorApp(error: e.toString()));
   }
 }
@@ -165,7 +163,6 @@ class Mandala525App extends StatelessWidget {
   }
 }
 
-// --- WIDGET MAINSCREEN DENGAN LAYOUT BARU ---
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -191,21 +188,12 @@ class _MainScreenState extends State<MainScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
-    _tabController.addListener(_handleTabSelection);
   }
 
   @override
   void dispose() {
-    _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _handleTabSelection() {
-    if (_tabController.index == 4) {
-      _buyNow();
-      _tabController.animateTo(0);
-    }
   }
 
   void _buyNow() {
@@ -227,7 +215,6 @@ class _MainScreenState extends State<MainScreen>
           return NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return <Widget>[
-                // Sliver untuk Logo dan Ikon Keranjang
                 SliverToBoxAdapter(
                   child: Container(
                     color: Colors.white,
@@ -252,17 +239,15 @@ class _MainScreenState extends State<MainScreen>
                     ),
                   ),
                 ),
-                // Sliver untuk TabBar yang menempel (sticky)
                 SliverPersistentHeader(
                   delegate: _SliverAppBarDelegate(
                     TabBar(
                       controller: _tabController,
-                      isScrollable:
-                          !isDesktop, // true di mobile, false di desktop
+                      isScrollable: !isDesktop,
                       tabs: _tabs,
                     ),
                   ),
-                  pinned: true, // Membuat TabBar menempel di atas
+                  pinned: true,
                 ),
               ];
             },
@@ -270,11 +255,17 @@ class _MainScreenState extends State<MainScreen>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
+                // 0: Beranda
                 HomePage(key: _homePageKey, tabController: _tabController),
-                const ProductPage(),
+                // 1: Produk
+                ProductPage(tabController: _tabController),
+                // 2: Edukasi
+                const EdukasiPage(),
+                // 3: Artikel
                 const InspirationPage(),
+                // 4: Beli Disini
                 const DistributionPage(),
-                const Center(child: CircularProgressIndicator()),
+                // 5: Kontak
                 const Center(child: Text("Halaman Kontak Dalam Pengembangan")),
               ],
             ),
@@ -285,7 +276,6 @@ class _MainScreenState extends State<MainScreen>
   }
 }
 
-// Class Delegate untuk membuat SliverPersistentHeader
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   _SliverAppBarDelegate(this._tabBar);
 

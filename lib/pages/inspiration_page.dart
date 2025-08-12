@@ -1,9 +1,8 @@
 // ignore_for_file: unnecessary_import, deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'dart:ui'; // Diperlukan untuk BackdropFilter
+import 'dart:ui';
 
-// Halaman Inspirasi / Daftar Artikel
 class InspirationPage extends StatelessWidget {
   const InspirationPage({super.key});
 
@@ -24,21 +23,21 @@ class InspirationPage extends StatelessWidget {
       'content':
           'Ibu Vitriani (70 tahun) sering membuat tetangganya kagum karena vitalitasnya. Saat yang lain sering mengeluh pegal linu, beliau masih aktif mengikuti senam setiap pagi. Rahasianya ternyata sederhana: pola hidup sehat dan asupan nutrisi yang tepat. "Selain makan sayur dan buah, saya rutin minum susu kedelai yang kaya akan kalsium dan isoflavon," ungkapnya. Menurutnya, nutrisi dari kedelai membantunya menjaga kepadatan tulang dan memberikan energi yang cukup untuk beraktivitas sepanjang hari. Beliau adalah bukti nyata bahwa menjaga kesehatan sejak dini adalah investasi terbaik untuk masa tua.',
     },
-    {
-      'image': 'assets/images/inspiration3.jpg',
-      'title': 'Pentingnya Menjaga Kesehatan Tulang Sejak Dini',
-      'summary':
-          'Osteoporosis bukanlah penyakit orang tua saja. Pelajari cara mencegahnya dan pentingnya nutrisi dari kedelai.',
-      'content':
-          'Banyak yang mengira osteoporosis atau pengeroposan tulang hanya menyerang lansia. Faktanya, kesehatan tulang dibangun sejak masa muda. Kurangnya asupan kalsium dan vitamin D di usia produktif dapat mempercepat risiko osteoporosis di kemudian hari. Salah satu sumber nutrisi terbaik untuk tulang adalah kedelai. Kedelai mengandung isoflavon, senyawa yang strukturnya mirip estrogen dan dapat membantu menjaga kepadatan tulang, terutama pada wanita pasca-menopause. Memulai kebiasaan mengonsumsi produk olahan kedelai seperti susu atau suplemen adalah langkah cerdas untuk investasi kesehatan tulang jangka panjang.',
-    },
+    // {
+    //   'image': 'assets/images/inspiration3.jpg',
+    //   'title': 'Pentingnya Menjaga Kesehatan Tulang Sejak Dini',
+    //   'summary':
+    //       'Osteoporosis bukanlah penyakit orang tua saja. Pelajari cara mencegahnya dan pentingnya nutrisi dari kedelai.',
+    //   'content':
+    //       'Banyak yang mengira osteoporosis atau pengeroposan tulang hanya menyerang lansia. Faktanya, kesehatan tulang dibangun sejak masa muda. Kurangnya asupan kalsium dan vitamin D di usia produktif dapat mempercepat risiko osteoporosis di kemudian hari. Salah satu sumber nutrisi terbaik untuk tulang adalah kedelai. Kedelai mengandung isoflavon, senyawa yang strukturnya mirip estrogen dan dapat membantu menjaga kepadatan tulang, terutama pada wanita pasca-menopause. Memulai kebiasaan mengonsumsi produk olahan kedelai seperti susu atau suplemen adalah langkah cerdas untuk investasi kesehatan tulang jangka panjang.',
+    // },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Artikel & Inspirasi"),
+        title: const Text("Artikel & Testimoni"),
         backgroundColor: Colors.white,
         elevation: 1,
         centerTitle: true,
@@ -56,14 +55,12 @@ class InspirationPage extends StatelessWidget {
     );
   }
 
-  // Widget untuk tampilan daftar di layar kecil (ponsel)
   Widget buildListView(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: articles.length,
       itemBuilder: (context, index) {
         final article = articles[index];
-        // Menambahkan Padding di bawah setiap kartu untuk memberi jarak
         return Padding(
           padding: const EdgeInsets.only(bottom: 20.0),
           child: ArticleCard(article: article),
@@ -72,7 +69,6 @@ class InspirationPage extends StatelessWidget {
     );
   }
 
-  // Widget untuk tampilan grid fleksibel di layar lebar
   Widget buildWrapLayout(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -185,7 +181,6 @@ class ArticleCard extends StatelessWidget {
   }
 }
 
-// Halaman Detail Artikel
 class ArticleDetailPage extends StatelessWidget {
   final Map<String, String> article;
 
@@ -194,7 +189,7 @@ class ArticleDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Memberi warna latar belakang
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
           article['title']!,
@@ -219,14 +214,11 @@ class ArticleDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- PERUBAHAN DI SINI ---
-                  // Properti height dan fit dihapus agar gambar tidak terpotong.
-                  // Gambar akan ditampilkan utuh sesuai rasio aspek aslinya.
                   Image.asset(
                     article['image']!,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        height: 200, // Tinggi fallback jika gambar gagal dimuat
+                        height: 200,
                         color: Colors.grey[200],
                         child: const Center(
                           child: Icon(

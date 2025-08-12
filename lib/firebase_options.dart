@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'newmandala525-baed3.firebasestorage.app',
     measurementId: 'G-DZ3GMWVYDX',
   );
+
 }

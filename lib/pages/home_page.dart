@@ -1,11 +1,9 @@
 // ignore_for_file: unused_element, no_leading_underscores_for_local_identifiers, use_key_in_widget_constructors, depend_on_referenced_packages, deprecated_member_use
 
-// import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:carousel_slider/carousel_slider.dart'; // <-- IMPORT PACKAGE BARU
+import 'package:carousel_slider/carousel_slider.dart';
 
-// Helper class untuk mempermudah penanganan responsivitas
 class Responsive {
   static bool isMobile(BuildContext context) =>
       MediaQuery.of(context).size.width < 800;
@@ -52,13 +50,11 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  // Helper untuk membuka URL
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      // Bisa ditambahkan snackbar atau dialog jika URL gagal dibuka
       debugPrint('Could not launch $url');
     }
   }
@@ -76,19 +72,12 @@ class HomePageState extends State<HomePage> {
                 const SizedBox(height: 24),
                 _buildHomepageBanner(context),
                 _buildIntroProductSection(context),
-                // _buildProblemSection(context),
                 _buildBenefitsSection(context),
                 _buildWhyUsSection(context),
                 _buildIngredientsSection(context),
+                _buildProductBundleSection(context),
                 _buildTestimonialsSection(context),
-
-                // --- WIDGET BARU DITAMBAHKAN DI SINI ---
-                // _buildArticlesSection(context),
                 _buildMarketplaceSection(context),
-                // --- AKHIR DARI WIDGET BARU ---
-
-                // _buildOrderFormSection(context, _formSectionKey),
-                // _buildFaqSection(context),
                 _buildFooter(context),
               ],
             ),
@@ -123,39 +112,173 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  // --- WIDGET BANNER BARU SESUAI PERMINTAAN ---
+  Widget _buildProductBundleSection(BuildContext context) {
+    const String productImage = 'assets/images/mdl1.jpg';
+    const String priceOneBox = "Rp 85.000";
+    const String priceTwoBoxOriginal = "Rp 170.000";
+    const String priceTwoBoxDiscount = "Rp 150.000";
+    const String savings = "Hemat Rp 20.000";
+
+    return _buildSectionCard(
+      color: Colors.white,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isDesktop = constraints.maxWidth > 700;
+          CrossAxisAlignment alignment =
+              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center;
+          TextAlign textAlign = isDesktop ? TextAlign.start : TextAlign.center;
+          final imageWidget = ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child: Image.asset(
+              productImage,
+              width: isDesktop ? 250 : 280,
+              height: isDesktop ? 250 : 280,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => Container(
+                    width: isDesktop ? 250 : 280,
+                    height: isDesktop ? 250 : 280,
+                    color: Colors.grey.shade300,
+                    child: const Center(
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        size: 60,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+            ),
+          );
+          final detailsWidget = Column(
+            crossAxisAlignment: alignment,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Penawaran Spesial!",
+                textAlign: textAlign,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Dapatkan paket lebih hemat untuk kesehatan sendi Anda.",
+                textAlign: textAlign,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              Chip(
+                label: Text(
+                  '1 Box: $priceOneBox',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "2 Box: $priceTwoBoxOriginal",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.grey.shade600,
+                  decoration: TextDecoration.lineThrough,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                priceTwoBoxDiscount,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  savings,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () {
+                  widget.tabController.animateTo(4);
+                },
+                icon: const Icon(Icons.shopping_cart_checkout),
+                label: const Text("Beli Paket Sekarang"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          if (isDesktop) {
+            return Row(
+              children: [
+                Expanded(flex: 2, child: imageWidget),
+                const SizedBox(width: 40),
+                Expanded(flex: 3, child: detailsWidget),
+              ],
+            );
+          } else {
+            return Column(
+              children: [
+                imageWidget,
+                const SizedBox(height: 40),
+                detailsWidget,
+              ],
+            );
+          }
+        },
+      ),
+    );
+  }
+
   Widget _buildHomepageBanner(BuildContext context) {
-    // Data disederhanakan agar sesuai dengan layout baru
     final List<Map<String, String>> banners = [
-      {
-        'background': 'assets/images/produk.jpeg', // Ganti dengan gambar Anda
-        // 'title': 'Lebih Kuat Kejar Pahala',
-        // 'description': 'Dengan rutin minum Etawalin saat sahur dan berbuka.',
-      },
-      {
-        'background':
-            'assets/images/kandungan.jpeg', // Ganti dengan gambar Anda
-        // 'title': 'Jaga Kesehatan Sendi & Tulang',
-        // 'description': 'Solusi herbal untuk masalah persendian Anda.',
-      },
-      {
-        'background': 'assets/images/gejala.jpeg', // Ganti dengan gambar Anda
-        // 'title': 'Promo Spesial Hari Ini',
-        // 'description': 'Dapatkan penawaran terbaik hanya untuk Anda.',
-      },
+      {'background': 'assets/images/produk.jpeg'},
+      {'background': 'assets/images/kandungan.jpeg'},
+      {'background': 'assets/images/gejala.jpeg'},
     ];
 
     return CarouselSlider.builder(
       itemCount: banners.length,
       options: CarouselOptions(
         height: 350,
-        autoPlay: banners.length > 1, // Autoplay hanya jika banner lebih dari 1
+        autoPlay: banners.length > 1,
         autoPlayInterval: const Duration(seconds: 4),
-        viewportFraction: 1.0, // Setiap banner mengisi lebar penuh
+        viewportFraction: 1.0,
       ),
       itemBuilder: (context, index, realIndex) {
         final banner = banners[index];
-        // Padding dipindahkan ke luar Card agar tidak ikut berputar
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Card(
@@ -169,7 +292,6 @@ class HomePageState extends State<HomePage> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Gambar Latar
                 Image.asset(
                   banner['background']!,
                   fit: BoxFit.cover,
@@ -182,46 +304,6 @@ class HomePageState extends State<HomePage> {
                         ),
                       ),
                 ),
-                // Gradient Hitam di bagian bawah
-                // DecoratedBox(
-                //   decoration: BoxDecoration(
-                //     gradient: LinearGradient(
-                //       begin: Alignment.bottomCenter,
-                //       end: Alignment.center,
-                //       colors: [
-                //         Colors.black.withOpacity(0.7),
-                //         Colors.transparent,
-                //       ],
-                //     ),
-                //   ),
-                // ),
-                // // Teks Judul dan Deskripsi
-                // Positioned(
-                //   bottom: 20.0,
-                //   left: 20.0,
-                //   right: 20.0,
-                //   child: Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: [
-                //       Text(
-                //         banner['title']!,
-                //         style: const TextStyle(
-                //           color: Colors.white,
-                //           fontSize: 22,
-                //           fontWeight: FontWeight.bold,
-                //         ),
-                //       ),
-                //       const SizedBox(height: 8.0),
-                //       Text(
-                //         banner['description']!,
-                //         style: const TextStyle(
-                //           color: Colors.white,
-                //           fontSize: 14,
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -245,22 +327,19 @@ class HomePageState extends State<HomePage> {
             '"Badan tidak mudah lelah dan kesemutan di tangan hilang. Produknya benar-benar terasa."',
       },
       {
-        'image': 'assets/images/testimoni_3.jpg', // Pastikan path gambar benar
+        'image': 'assets/images/testimoni_3.jpg',
         'name': 'Bapak Telo',
         'comment':
             '"Awalnya ragu, tapi pegal di punggung jadi hilang. Sangat direkomendasikan!"',
       },
       {
-        'image': 'assets/images/testimoni_4.jpg', // Pastikan path gambar benar
+        'image': 'assets/images/testimoni_4.jpg',
         'name': 'Ibu Wati',
         'comment':
             '"Tidur jadi lebih nyenyak dan bangun pagi badan terasa lebih segar. Terima kasih Mandala 525."',
       },
     ];
 
-    // ### KUNCI PERUBAHAN DI SINI: (1/3) untuk menampilkan 3 item ###
-    // Jika mobile: 1.0 (1 item penuh).
-    // Jika desktop/tablet: 1/3 (sepertiga layar, jadi 3 item pas).
     final double viewportFraction =
         Responsive.isMobile(context) ? 1.0 : (1 / 3);
 
@@ -284,21 +363,14 @@ class HomePageState extends State<HomePage> {
             itemCount: testimonies.length,
             options: CarouselOptions(
               height: 320,
-
-              // Autoplay jika item lebih dari 3 (karena 3 sudah tampil)
               autoPlay: testimonies.length > 3,
-
-              // Menggunakan nilai viewportFraction yang baru
               viewportFraction: viewportFraction,
-
-              // Tetap false agar tidak ada efek zoom/terpotong
               enlargeCenterPage: false,
             ),
             itemBuilder: (context, index, realIndex) {
               final testimony = testimonies[index];
 
               return Container(
-                // Sedikit mengurangi margin agar card lebih lega
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
                 child: Card(
                   color: Colors.white,
@@ -357,203 +429,16 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  // =======================================================================
-  // ====================== WIDGET BARU DIMULAI DARI SINI ==================
-  // =======================================================================
-
-  /// WIDGET BAGIAN ARTIKEL
-  // Widget _buildArticlesSection(BuildContext context) {
-  //   //
-  //   // ### PERHATIAN ###
-  //   // Ganti path gambar dan URL tujuan sesuai kebutuhan Anda.
-  //   // Pastikan gambar sudah ditambahkan di folder assets/images/
-  //   //
-  //   final List<Map<String, String>> articles = [
-  //     {
-  //       'image': 'assets/images/artikel1.jpg',
-  //       'title': 'Contoh1',
-  //       'url': '#', // Ganti dengan URL artikel
-  //     },
-  //     {
-  //       'image': 'assets/images/artikel2.jpg',
-  //       'title': 'Contoh2',
-  //       'url': '#', // Ganti dengan URL artikel
-  //     },
-  //     {
-  //       'image': 'assets/images/artikel3.jpg',
-  //       'title': 'contoh3',
-  //       'url': '#', // Ganti dengan URL artikel
-  //     },
-  //   ];
-
-  //   // Layout berbeda untuk mobile dan desktop/tablet
-  //   bool isMobile = Responsive.isMobile(context);
-
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-  //     child: Column(
-  //       children: [
-  //         // Header (Judul dan Tombol)
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             Padding(
-  //               padding: const EdgeInsets.symmetric(horizontal: 20),
-  //               child: Text(
-  //                 "Artikel Terbaru",
-  //                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //             ),
-  //             TextButton(
-  //               onPressed: () {
-  //                 // Arahkan ke halaman daftar artikel jika ada
-  //                 widget.tabController.animateTo(
-  //                   3,
-  //                 ); // Asumsi tab Artikel ada di index 3
-  //               },
-  //               child: const Text("Lihat Semua Artikel"),
-  //             ),
-  //           ],
-  //         ),
-  //         const SizedBox(height: 24),
-
-  //         // Daftar Kartu Artikel
-  //         isMobile
-  //             ? SingleChildScrollView(
-  //               scrollDirection: Axis.horizontal,
-  //               child: Row(
-  //                 children:
-  //                     articles.map((article) {
-  //                       return SizedBox(
-  //                         width: MediaQuery.of(context).size.width * 0.8,
-  //                         child: _buildArticleCard(article),
-  //                       );
-  //                     }).toList(),
-  //               ),
-  //             )
-  //             : Row(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children:
-  //                   articles.map((article) {
-  //                     return Expanded(child: _buildArticleCard(article));
-  //                   }).toList(),
-  //             ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  /// Helper widget untuk satu kartu artikel
-  Widget _buildArticleCard(Map<String, String> article) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 3,
-        shadowColor: Colors.black.withOpacity(0.1),
-        child: InkWell(
-          onTap: () {
-            // Aksi saat kartu diklik, misalnya membuka URL
-            // _launchURL(article['url']!);
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Gambar Artikel
-              Image.asset(
-                article['image']!,
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder:
-                    (context, error, stackTrace) => Container(
-                      height: 150,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.grey,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-              ),
-              // Konten Teks
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Tag informasi
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(5.0),
-                      ),
-                      child: Text(
-                        "INFORMASI PRODUK",
-                        style: TextStyle(
-                          color: Colors.blue.shade800,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Judul Artikel
-                    Text(
-                      article['title']!,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        height: 1.3,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 16),
-                    // Ikon panah
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: Icon(Icons.arrow_forward, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// WIDGET BAGIAN MARKETPLACE
   Widget _buildMarketplaceSection(BuildContext context) {
-    //
-    // ### PERHATIAN ###
-    // Ganti path gambar dan URL tujuan sesuai kebutuhan Anda.
-    // Pastikan logo marketplace sudah ditambahkan di folder assets/images/
-    //
     final List<Map<String, String>> marketplaces = [
-      {
-        'image': 'assets/images/img-shopee.jpg',
-        'url': 'https://shopee.co.id', // Ganti dengan URL toko Anda
-      },
+      {'image': 'assets/images/img-shopee.jpg', 'url': 'https://shopee.co.id'},
       {
         'image': 'assets/images/img-tokopedia.jpg',
-        'url': 'https://www.tokopedia.com', // Ganti dengan URL toko Anda
+        'url': 'https://www.tokopedia.com',
       },
       {
         'image': 'assets/images/img-lazada.jpg',
-        'url': 'https://www.lazada.co.id', // Ganti dengan URL toko Anda
+        'url': 'https://www.lazada.co.id',
       },
     ];
 
@@ -565,7 +450,7 @@ class HomePageState extends State<HomePage> {
       child: Column(
         children: [
           Text(
-            "Belanja Susu New Mandala 525",
+            "Belanja Susu New Mandala",
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -620,15 +505,16 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildBenefitsSection(BuildContext context) {
     final benefits = [
-      {'icon': Icons.healing, 'text': 'Membantu Penyembuhan Stroke'},
-      {'icon': Icons.security, 'text': 'Mencegah Risiko Stroke'},
-      {'icon': Icons.fitness_center, 'text': 'Menguatkan Tulang'},
-      {'icon': Icons.shield_outlined, 'text': 'Cegah Osteoporosis'},
+      {'icon': Icons.healing, 'text': 'Membantu Penyembuhan & Mencegah Stroke'},
+      {
+        'icon': Icons.security,
+        'text': 'Menguatkan Tulang & Mencegah Osteoporosis',
+      },
       {'icon': Icons.favorite_border, 'text': 'Meningkatkan Fungsi Jantung'},
     ];
 
     return _buildSectionCard(
-      color: const Color(0xFFF7EFE5), // Warna krem dari desain lama
+      color: const Color(0xFFF7EFE5),
       child: Column(
         children: [
           Text(
@@ -677,49 +563,7 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  // Widget _buildProblemSection(BuildContext context) {
-  //   final problems = [
-  //     "Mudah Lelah & Capek",
-  //     "Nyeri Pada Persendian",
-  //     "Sering Kesemutan",
-  //     "Tulang Keropos (Osteoporosis)",
-  //   ];
-  //   return _buildSectionCard(
-  //     color: const Color(0xFFF7EFE5),
-  //     child: Column(
-  //       children: [
-  //         Text(
-  //           "Sering Mengalami Gejala Ini?",
-  //           textAlign: TextAlign.center,
-  //           style: Theme.of(
-  //             context,
-  //           ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
-  //         ),
-  //         const SizedBox(height: 32),
-  //         ...problems.map(
-  //           (problem) => ListTile(
-  //             contentPadding: const EdgeInsets.symmetric(
-  //               vertical: 8.0,
-  //               horizontal: 16.0,
-  //             ),
-  //             leading: Icon(
-  //               Icons.check_circle_outline,
-  //               size: 30,
-  //               color: Theme.of(context).primaryColor,
-  //             ),
-  //             title: Text(
-  //               problem,
-  //               style: Theme.of(context).textTheme.titleLarge,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildWhyUsSection(BuildContext context) {
-    // Menghapus _buildSectionCard dan menggantinya dengan Padding.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
       child: Column(
@@ -775,8 +619,6 @@ class HomePageState extends State<HomePage> {
 
     return Container(
       width: double.infinity,
-      // DIKEMBALIKAN: baris 'color: Colors.white' dihapus dari sini
-      // agar latar belakangnya kembali transparan (mengikuti warna utama halaman)
       padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
       child: Column(
         children: [
@@ -809,10 +651,8 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildIngredientCard(Map<String, String> ingredient) {
     return SizedBox(
-      width: 280, // Memberi lebar tetap pada kartu
+      width: 280,
       child: Card(
-        // BARU: Tambahkan 'color: Colors.white' di sini
-        // untuk memastikan kartu bahan spesifik ini berwarna putih.
         color: Colors.white,
         margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         elevation: 4,
@@ -853,8 +693,6 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildIntroProductSection(BuildContext context) {
-    // Menghapus _buildSectionCard dan menggantinya dengan Padding
-    // untuk menjaga jarak tanpa menggunakan Card.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
       child: LayoutBuilder(
@@ -864,7 +702,7 @@ class HomePageState extends State<HomePage> {
           final imageWidget = ClipRRect(
             borderRadius: BorderRadius.circular(15),
             child: Image.asset(
-              'assets/images/mdl1.jpg',
+              'assets/images/mdl2.jpg',
               errorBuilder:
                   (context, error, stackTrace) =>
                       const Icon(Icons.image, size: 100),
@@ -879,7 +717,7 @@ class HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "PRODUK NEW MANDALA 525",
+                "Pilihan Cerdas Hidup Sehat dan Aktif",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
@@ -896,7 +734,7 @@ class HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
               Text(
-                "New Mandala 525 adalah minuman multigrain dengan kedelai pilihan yang tinggi serat. Diformulasikan secara khusus untuk membantu meningkatkan kesehatan persendian dan tulang secara menyeluruh.",
+                "Minuman serbuk kedelai instan yang terbuat dari kacang kedelai pilihan. Minuman ini diproses secara alami dan mengandung protein nabati yang sangat tinggi, mengandung serat, asam lemak tak jenuh, zat besi, dan isoflavon. Baik untuk jantung, bantu turunkan kolesterol, dan menjaga daya tahan tubuh.",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   height: 1.6,
                   color: Colors.black87,
@@ -939,186 +777,6 @@ class HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  // Widget _buildOrderFormSection(BuildContext context, GlobalKey formKey) {
-  //   final _formStateKey = GlobalKey<FormState>();
-  //   String name = '', phone = '', message = '', quantity = '';
-
-  //   Future<void> _submitOrder() async {
-  //     if (_formStateKey.currentState!.validate()) {
-  //       _formStateKey.currentState!.save();
-  //       final fullMessage =
-  //           'Halo, saya $name, ingin memesan New Mandala 525 sebanyak $quantity pcs. $message (No. WA: $phone)';
-  //       final whatsAppUrl =
-  //           'https://wa.me/6282117556907?text=${Uri.encodeComponent(fullMessage)}';
-  //       if (await canLaunchUrl(Uri.parse(whatsAppUrl))) {
-  //         await launchUrl(Uri.parse(whatsAppUrl));
-  //       }
-  //     }
-  //   }
-
-  //   return _buildSectionCard(
-  //     child: Center(
-  //       key: formKey,
-  //       child: ConstrainedBox(
-  //         constraints: const BoxConstraints(maxWidth: 500),
-  //         child: Column(
-  //           children: [
-  //             Text(
-  //               "Pesan Sekarang!",
-  //               style: Theme.of(
-  //                 context,
-  //               ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
-  //             ),
-  //             const SizedBox(height: 16),
-  //             Text(
-  //               "Isi form di bawah ini dan kami akan segera menghubungi Anda melalui WhatsApp.",
-  //               textAlign: TextAlign.center,
-  //               style: Theme.of(
-  //                 context,
-  //               ).textTheme.titleLarge?.copyWith(color: Colors.black54),
-  //             ),
-  //             const SizedBox(height: 32),
-  //             Form(
-  //               key: _formStateKey,
-  //               child: Column(
-  //                 children: [
-  //                   TextFormField(
-  //                     decoration: const InputDecoration(
-  //                       labelText: 'Nama Lengkap',
-  //                     ),
-  //                     onSaved: (val) => name = val ?? '',
-  //                     validator:
-  //                         (val) =>
-  //                             val!.isEmpty ? 'Nama tidak boleh kosong' : null,
-  //                   ),
-  //                   const SizedBox(height: 16),
-  //                   TextFormField(
-  //                     decoration: const InputDecoration(
-  //                       labelText: 'No. WhatsApp Aktif',
-  //                     ),
-  //                     keyboardType: TextInputType.phone,
-  //                     onSaved: (val) => phone = val ?? '',
-  //                     validator:
-  //                         (val) =>
-  //                             val!.isEmpty
-  //                                 ? 'No. WhatsApp tidak boleh kosong'
-  //                                 : null,
-  //                   ),
-  //                   const SizedBox(height: 16),
-  //                   TextFormField(
-  //                     decoration: const InputDecoration(
-  //                       labelText: 'Jumlah Pesanan (pcs)',
-  //                     ),
-  //                     keyboardType: TextInputType.number,
-  //                     onSaved: (val) => quantity = val ?? '',
-  //                     validator:
-  //                         (val) =>
-  //                             val!.isEmpty ? 'Jumlah tidak boleh kosong' : null,
-  //                   ),
-  //                   const SizedBox(height: 16),
-  //                   TextFormField(
-  //                     decoration: const InputDecoration(
-  //                       labelText: 'Pesan Tambahan (opsional)',
-  //                     ),
-  //                     onSaved: (val) => message = val ?? '',
-  //                     maxLines: 3,
-  //                   ),
-  //                   const SizedBox(height: 40),
-  //                   ElevatedButton(
-  //                     style: ElevatedButton.styleFrom(
-  //                       padding: const EdgeInsets.symmetric(
-  //                         horizontal: 48,
-  //                         vertical: 16,
-  //                       ),
-  //                       textStyle: Theme.of(context).textTheme.titleMedium
-  //                           ?.copyWith(fontWeight: FontWeight.bold),
-  //                     ),
-  //                     onPressed: _submitOrder,
-  //                     child: const Text("Kirim Pesanan via WhatsApp"),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildFaqSection(BuildContext context) {
-  //   final faqs = [
-  //     {
-  //       'q': 'Apakah New Mandala 525 aman dikonsumsi setiap hari?',
-  //       'a':
-  //           'Ya, New Mandala 525 sangat aman dikonsumsi setiap hari karena terbuat dari bahan-bahan alami pilihan dan sudah tersertifikasi BPOM.',
-  //     },
-  //     {
-  //       'q': 'Apakah produk ini mengandung gula?',
-  //       'a':
-  //           'Produk kami menggunakan pemanis alami yang aman dan rendah kalori, sehingga cocok untuk Anda yang sedang menjaga asupan gula.',
-  //     },
-  //     {
-  //       'q': 'Siapa saja yang boleh mengonsumsi produk ini?',
-  //       'a':
-  //           'Produk ini cocok dikonsumsi oleh dewasa hingga lanjut usia, terutama bagi mereka yang memiliki keluhan pada sendi, tulang, atau ingin menjaga kesehatan secara umum.',
-  //     },
-  //     {
-  //       'q': 'Bagaimana cara menjadi agen resmi?',
-  //       'a':
-  //           'Untuk informasi pendaftaran agen, Anda dapat menghubungi nomor WhatsApp resmi kami yang tertera di halaman "Distribusi".',
-  //     },
-  //   ];
-  //   return _buildSectionCard(
-  //     color: const Color(0xFFF7EFE5),
-  //     padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
-  //     child: Column(
-  //       children: [
-  //         Text(
-  //           "Frequently Asked Questions",
-  //           textAlign: TextAlign.center,
-  //           style: Theme.of(
-  //             context,
-  //           ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
-  //         ),
-  //         const SizedBox(height: 32),
-  //         ...faqs.map(
-  //           (faq) => Card(
-  //             margin: const EdgeInsets.only(bottom: 12),
-  //             elevation: 2,
-  //             shadowColor: Colors.black.withOpacity(0.05),
-  //             shape: RoundedRectangleBorder(
-  //               borderRadius: BorderRadius.circular(12),
-  //             ),
-  //             child: ExpansionTile(
-  //               tilePadding: const EdgeInsets.symmetric(
-  //                 horizontal: 20,
-  //                 vertical: 8,
-  //               ),
-  //               title: Text(
-  //                 faq['q']!,
-  //                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //               ),
-  //               childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-  //               children: [
-  //                 Text(
-  //                   faq['a']!,
-  //                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-  //                         color: Colors.black87,
-  //                         height: 1.5,
-  //                       ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _buildFooter(BuildContext context) {
     return Container(

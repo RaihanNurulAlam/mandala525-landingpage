@@ -3,9 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ProductPage extends StatelessWidget {
-  const ProductPage({super.key});
+class ProductPage extends StatefulWidget {
+  const ProductPage({super.key, required this.tabController});
+  final TabController tabController;
 
+  @override
+  State<ProductPage> createState() => _ProductPageState();
+}
+
+class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -14,13 +20,190 @@ class ProductPage extends StatelessWidget {
           _buildKeyIngredientsSection(context),
           _buildServingMethodSection(context),
           _buildCertificationSection(context),
-          _buildFooter(context), // Footer bisa digunakan lagi di sini
+          _buildProductBundleSection(context),
+          _buildFooter(context),
         ],
       ),
     );
   }
 
-  // --- WIDGET-WIDGET KONTEN UNTUK HALAMAN PRODUK ---
+  Widget _buildSectionCard({
+    required Widget child,
+    Color? color,
+    EdgeInsets? padding,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Card(
+        color: color ?? Colors.white,
+        elevation: 3,
+        shadowColor: Colors.black.withOpacity(0.15),
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Padding(
+          padding:
+              padding ??
+              const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductBundleSection(BuildContext context) {
+    const String productImage = 'assets/images/mdl1.jpg';
+    const String priceOneBox = "Rp 85.000";
+    const String priceTwoBoxOriginal = "Rp 170.000";
+    const String priceTwoBoxDiscount = "Rp 150.000";
+    const String savings = "Hemat Rp 20.000";
+
+    return _buildSectionCard(
+      color: Colors.white,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isDesktop = constraints.maxWidth > 700;
+          CrossAxisAlignment alignment =
+              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center;
+          TextAlign textAlign = isDesktop ? TextAlign.start : TextAlign.center;
+
+          final imageWidget = ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child: Image.asset(
+              productImage,
+              width: isDesktop ? 250 : 280,
+              height: isDesktop ? 250 : 280,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => Container(
+                    width: isDesktop ? 250 : 280,
+                    height: isDesktop ? 250 : 280,
+                    color: Colors.grey.shade300,
+                    child: const Center(
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        size: 60,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+            ),
+          );
+
+          final detailsWidget = Column(
+            crossAxisAlignment: alignment,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Penawaran Spesial!",
+                textAlign: textAlign,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Dapatkan paket lebih hemat untuk kesehatan sendi Anda.",
+                textAlign: textAlign,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              Chip(
+                label: Text(
+                  '1 Box: $priceOneBox',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "2 Box: $priceTwoBoxOriginal",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.grey.shade600,
+                  decoration: TextDecoration.lineThrough,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                priceTwoBoxDiscount,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  savings,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              ElevatedButton.icon(
+                onPressed: () {
+                  widget.tabController.animateTo(4);
+                },
+                icon: const Icon(Icons.shopping_cart_checkout),
+                label: const Text("Beli Paket Sekarang"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          if (isDesktop) {
+            return Row(
+              children: [
+                Expanded(flex: 2, child: imageWidget),
+                const SizedBox(width: 40),
+                Expanded(flex: 3, child: detailsWidget),
+              ],
+            );
+          } else {
+            return Column(
+              children: [
+                imageWidget,
+                const SizedBox(height: 40),
+                detailsWidget,
+              ],
+            );
+          }
+        },
+      ),
+    );
+  }
 
   Widget _buildKeyIngredientsSection(BuildContext context) {
     final ingredients = [
@@ -28,38 +211,55 @@ class ProductPage extends StatelessWidget {
         'icon': Icons.spa,
         'title': 'Protein Nabati',
         'desc':
-            'Kaya akan protein untuk membangun dan memperbaiki sel tubuh yang rusak.',
+            'Sumber kekuatan dari alam untuk menjaga massa otot dan metabolisme tubuh, agar Anda tetap aktif dan berenergi.',
       },
       {
         'icon': Icons.grass,
         'title': 'Isoflavon',
         'desc':
-            'Sebagai antioksidan kuat yang membantu menjaga kesehatan jantung dan pembuluh darah.',
+            'Antioksidan istimewa yang menjaga harmoni hormon, merawat jantung, serta menguatkan tulang dari dalam.',
       },
       {
         'icon': Icons.grain,
         'title': 'Lesitin Kedelai',
         'desc':
-            'Nutrisi penting untuk memelihara fungsi otak, saraf, dan juga kesehatan hati.',
+            'Nutrisi cerdas untuk otak dan jantung. Menjaga Anda tetap sehat dan bersemangat menjalani hari.',
       },
       {
         'icon': Icons.eco,
         'title': 'Serat Pangan',
         'desc':
-            'Membantu melancarkan sistem pencernaan dan menjaga kadar gula darah.',
+            'Sahabat pencernaan Anda. Membantu mengontrol gula darah dan kolesterol, untuk tubuh yang terasa ringan dan ideal.',
+      },
+      {
+        'icon': Icons.health_and_safety_outlined,
+        'title': 'Vitamin & Mineral',
+        'desc':
+            'Pelengkap sempurna untuk daya tahan tubuh. Menjaga metabolisme dan fungsi organ agar tubuh selalu prima.',
       },
     ];
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 24),
-      color: const Color(0xFFF7EFE5),
+      color: const Color(0xFFF7EFE5), // Warna latar yang lembut
       child: Column(
         children: [
           Text(
             "KANDUNGAN UTAMA",
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          Text(
+            "Pilihan Cerdas Hidup Sehat dan Aktif",
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.black54,
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
           Wrap(
             spacing: 24,
             runSpacing: 32,
@@ -67,7 +267,7 @@ class ProductPage extends StatelessWidget {
             children:
                 ingredients.map((item) {
                   return SizedBox(
-                    width: 150,
+                    width: 160,
                     child: Column(
                       children: [
                         CircleAvatar(
@@ -90,7 +290,11 @@ class ProductPage extends StatelessWidget {
                           item['title'] as String,
                           style: Theme.of(
                             context,
-                          ).textTheme.titleLarge?.copyWith(fontSize: 18),
+                          ).textTheme.titleLarge?.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -131,19 +335,21 @@ class ProductPage extends StatelessWidget {
                   _buildStep(
                     context,
                     '1',
-                    'Tuangkan 1 sachet New Mandala 525 ke dalam gelas.',
+                    'Ambil 2 sendok makan atau 20 gram New Mandala 525.',
                   ),
                   const Divider(height: 32),
-                  _buildStep(
-                    context,
-                    '2',
-                    'Tambahkan 150ml air hangat (jangan air panas mendidih).',
-                  ),
+                  _buildStep(context, '2', 'Seduh dengan air hangat +- 300 ml'),
                   const Divider(height: 32),
                   _buildStep(
                     context,
                     '3',
-                    'Aduk hingga rata dan minuman siap dinikmati.',
+                    'Aduk hingga rata, bisa diminum dalam keadaan hangat atau dingin.',
+                  ),
+                  const Divider(height: 32),
+                  _buildStep(
+                    context,
+                    '4',
+                    'Campurkan dengan berbagai rasa dan aroma (sirup, coklat, madu, dll) sesuai selera.',
                   ),
                 ],
               ),
