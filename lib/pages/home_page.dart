@@ -1,8 +1,8 @@
 // ignore_for_file: unused_element, no_leading_underscores_for_local_identifiers, use_key_in_widget_constructors, depend_on_referenced_packages, deprecated_member_use
 
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 
 class Responsive {
   static bool isMobile(BuildContext context) =>
@@ -23,31 +23,40 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  final GlobalKey _formSectionKey = GlobalKey();
-
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  void scrollToForm() {
-    if (_formSectionKey.currentContext != null) {
-      Scrollable.ensureVisible(
-        _formSectionKey.currentContext!,
-        duration: const Duration(seconds: 1),
-        curve: Curves.easeInOut,
-      );
-    }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHomepageBanner(context),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Column(
+                  children: [
+                    _buildIntroWithIngredientsSection(context),
+                    // Widget di bawah ini akan di-render full-width
+                  ],
+                ),
+              ),
+            ),
+            _buildWhyUsSection(context),
+            // Widget yang sudah diubah menjadi full-width
+            _buildFeatureAndBenefitSection(context),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Column(children: [_buildTestimonialsSection(context)]),
+              ),
+            ),
+            _buildMarketplaceSection(context),
+            _buildFooter(context),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _launchURL(String url) async {
@@ -59,175 +68,47 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: SingleChildScrollView(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                _buildHomepageBanner(context),
-                _buildIntroProductSection(context),
-                _buildBenefitsSection(context),
-                _buildWhyUsSection(context),
-                _buildIngredientsSection(context),
-                _buildProductBundleSection(context),
-                _buildTestimonialsSection(context),
-                _buildMarketplaceSection(context),
-                _buildFooter(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionCard({
-    required Widget child,
-    Color? color,
-    EdgeInsets? padding,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Card(
-        color: color ?? Colors.white,
-        elevation: 3,
-        shadowColor: Colors.black.withOpacity(0.15),
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        child: Padding(
-          padding:
-              padding ??
-              const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductBundleSection(BuildContext context) {
-    const String productImage = 'assets/images/mdl1.jpg';
-    const String priceOneBox = "Rp 85.000";
-    const String priceTwoBoxOriginal = "Rp 170.000";
-    const String priceTwoBoxDiscount = "Rp 150.000";
-    const String savings = "Hemat Rp 20.000";
-
-    return _buildSectionCard(
-      color: Colors.white,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isDesktop = constraints.maxWidth > 700;
-          CrossAxisAlignment alignment =
-              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center;
-          TextAlign textAlign = isDesktop ? TextAlign.start : TextAlign.center;
-          final imageWidget = ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
-            child: Image.asset(
-              productImage,
-              width: isDesktop ? 250 : 280,
-              height: isDesktop ? 250 : 280,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (context, error, stackTrace) => Container(
-                    width: isDesktop ? 250 : 280,
-                    height: isDesktop ? 250 : 280,
-                    color: Colors.grey.shade300,
-                    child: const Center(
-                      child: Icon(
-                        Icons.broken_image_outlined,
-                        size: 60,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-            ),
-          );
-          final detailsWidget = Column(
-            crossAxisAlignment: alignment,
-            mainAxisAlignment: MainAxisAlignment.center,
+  // MODIFIED: Widget ini diubah total menjadi full-width dan tanpa gambar
+  Widget _buildFeatureAndBenefitSection(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFF7EFE5), // Warna latar lembut full-width
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 800,
+          ), // Batasi lebar teks agar mudah dibaca
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Penawaran Spesial!",
-                textAlign: textAlign,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Dapatkan paket lebih hemat untuk kesehatan sendi Anda.",
-                textAlign: textAlign,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: Colors.black54),
-              ),
-              const SizedBox(height: 24),
-              Chip(
-                label: Text(
-                  '1 Box: $priceOneBox',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(color: Colors.grey.shade300),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "2 Box: $priceTwoBoxOriginal",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                  decoration: TextDecoration.lineThrough,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                priceTwoBoxDiscount,
+                "Investasi Terbaik untuk Kesehatan Anda",
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: Colors.red.shade700,
                   fontWeight: FontWeight.bold,
+                  fontSize: 28,
                 ),
               ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  savings,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.amber.shade900,
-                  ),
+              const SizedBox(height: 16),
+              Text(
+                "Susu New Mandala 525 adalah pilihan cerdas untuk menjaga kesehatan tulang dan sendi dari dalam, memberikan nutrisi yang Anda butuhkan untuk tetap aktif setiap hari.",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.black54,
+                  height: 1.5,
                 ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
+              ElevatedButton(
                 onPressed: () {
+                  // Mengarahkan ke tab Distributor Resmi
                   widget.tabController.animateTo(4);
                 },
-                icon: const Icon(Icons.shopping_cart_checkout),
-                label: const Text("Beli Paket Sekarang"),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
-                    vertical: 16,
+                    vertical: 18,
                   ),
                   textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -236,16 +117,156 @@ class HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
+                child: const Text("Beli di Distributor Resmi"),
+              ),
+              const SizedBox(height: 40),
+              const Divider(thickness: 1),
+              const SizedBox(height: 40),
+              // Manfaat produk
+              _buildBenefitItem(
+                Icons.healing,
+                'Membantu Penyembuhan & Mencegah Stroke',
+              ),
+              const SizedBox(height: 20),
+              _buildBenefitItem(
+                Icons.security_outlined,
+                'Menguatkan Tulang & Mencegah Osteoporosis',
+              ),
+              const SizedBox(height: 20),
+              _buildBenefitItem(
+                Icons.favorite_border,
+                'Meningkatkan Fungsi Jantung',
+              ),
+              // const SizedBox(height: 32),
+              // Paragraf penjelasan baru
+              // Text(
+              //   "Manfaat-manfaat ini hadir berkat kandungan protein nabati yang tinggi untuk regenerasi sel, isoflavon sebagai antioksidan kuat yang menjaga kesehatan jantung, serta kalsium dari kedelai yang esensial untuk kepadatan tulang.",
+              //   textAlign: TextAlign.center,
+              //   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              //     color: Colors.black54,
+              //     fontStyle: FontStyle.italic,
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper untuk menampilkan item manfaat
+  Widget _buildBenefitItem(IconData icon, String text) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Theme.of(context).primaryColor, size: 28),
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            text,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIntroWithIngredientsSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60.0, horizontal: 24.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isDesktop = constraints.maxWidth > 800;
+          final imageWidget = ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Image.asset(
+              'assets/images/mdl2.jpg',
+              height: isDesktop ? 450 : 300,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) =>
+                      const Icon(Icons.image, size: 100),
+            ),
+          );
+          final textAndIngredientsWidget = Column(
+            crossAxisAlignment:
+                isDesktop
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Pilihan Cerdas Hidup Sehat dan Aktif",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "New Mandala 525",
+                textAlign: isDesktop ? TextAlign.start : TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                "Minuman serbuk kedelai instan yang diproses alami, mengandung protein nabati tinggi, serat, dan isoflavon. Baik untuk jantung, bantu turunkan kolesterol, dan menjaga daya tahan tubuh.",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  height: 1.6,
+                  color: Colors.black87,
+                ),
+                textAlign: isDesktop ? TextAlign.start : TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              const Divider(thickness: 1),
+              const SizedBox(height: 32),
+              _buildIngredientItemHomepage(
+                context,
+                Icons.eco,
+                'Susu Kedelai GMO',
+                'Sumber protein nabati berkualitas tinggi, baik untuk kesehatan jantung dan menjaga kepadatan tulang.',
+              ),
+              const SizedBox(height: 20),
+              _buildIngredientItemHomepage(
+                context,
+                Icons.grass,
+                'Daun Pandan Asli',
+                'Memberikan aroma khas yang menenangkan dan mengandung antioksidan alami yang baik untuk tubuh.',
+              ),
+              const SizedBox(height: 32),
+              Align(
+                alignment: isDesktop ? Alignment.centerLeft : Alignment.center,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    textStyle: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  onPressed: () {
+                    widget.tabController.animateTo(1);
+                  },
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text("Lihat Detail Produk"),
+                ),
               ),
             ],
           );
 
           if (isDesktop) {
             return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(flex: 2, child: imageWidget),
-                const SizedBox(width: 40),
-                Expanded(flex: 3, child: detailsWidget),
+                const SizedBox(width: 50),
+                Expanded(flex: 3, child: textAndIngredientsWidget),
               ],
             );
           } else {
@@ -253,12 +274,47 @@ class HomePageState extends State<HomePage> {
               children: [
                 imageWidget,
                 const SizedBox(height: 40),
-                detailsWidget,
+                textAndIngredientsWidget,
               ],
             );
           }
         },
       ),
+    );
+  }
+
+  Widget _buildIngredientItemHomepage(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Theme.of(context).primaryColor, size: 30),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -279,34 +335,22 @@ class HomePageState extends State<HomePage> {
       ),
       itemBuilder: (context, index, realIndex) {
         final banner = banners[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Card(
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
-            elevation: 4,
-            shadowColor: Colors.black.withOpacity(0.2),
-            clipBehavior: Clip.antiAlias,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              banner['background']!,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.grey,
+                      size: 50,
+                    ),
+                  ),
             ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  banner['background']!,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => const Center(
-                        child: Icon(
-                          Icons.broken_image_outlined,
-                          color: Colors.grey,
-                          size: 50,
-                        ),
-                      ),
-                ),
-              ],
-            ),
-          ),
+          ],
         );
       },
     );
@@ -359,7 +403,6 @@ class HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 40),
-
           CarouselSlider.builder(
             itemCount: testimonies.length,
             options: CarouselOptions(
@@ -432,14 +475,17 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildMarketplaceSection(BuildContext context) {
     final List<Map<String, String>> marketplaces = [
-      {'image': 'assets/images/img-shopee.jpg', 'url': 'https://shopee.co.id'},
+      {
+        'image': 'assets/images/img-shopee.jpg',
+        'url': 'https://shopee.co.id/newmandala525',
+      },
       {
         'image': 'assets/images/img-tokopedia.jpg',
-        'url': 'https://www.tokopedia.com',
+        'url': 'https://www.tokopedia.com/newmandala525',
       },
       {
         'image': 'assets/images/img-lazada.jpg',
-        'url': 'https://www.lazada.co.id',
+        'url': 'https://www.lazada.co.id/shop/new-mandala-525',
       },
     ];
 
@@ -491,81 +537,6 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavigationButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return CircleAvatar(
-      backgroundColor: Colors.black.withOpacity(0.3),
-      radius: 24,
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 20),
-        onPressed: onPressed,
-      ),
-    );
-  }
-
-  Widget _buildBenefitsSection(BuildContext context) {
-    final benefits = [
-      {'icon': Icons.healing, 'text': 'Membantu Penyembuhan & Mencegah Stroke'},
-      {
-        'icon': Icons.security,
-        'text': 'Menguatkan Tulang & Mencegah Osteoporosis',
-      },
-      {'icon': Icons.favorite_border, 'text': 'Meningkatkan Fungsi Jantung'},
-    ];
-
-    return _buildSectionCard(
-      color: const Color(0xFFF7EFE5),
-      child: Column(
-        children: [
-          Text(
-            "Manfaat New Mandala 525",
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-          const SizedBox(height: 48),
-          Wrap(
-            spacing: 40,
-            runSpacing: 40,
-            alignment: WrapAlignment.center,
-            children:
-                benefits.map((benefit) {
-                  return SizedBox(
-                    width: 160,
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).primaryColor.withOpacity(0.1),
-                          child: Icon(
-                            benefit['icon'] as IconData,
-                            size: 35,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          benefit['text'] as String,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildWhyUsSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
@@ -605,242 +576,172 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildIngredientsSection(BuildContext context) {
-    final List<Map<String, String>> ingredients = [
-      {
-        'image': 'assets/images/kedelai.png',
-        'title': 'Susu Kedelai GMO',
-        'description':
-            'Sumber protein nabati berkualitas tinggi, baik untuk kesehatan jantung dan menjaga kepadatan tulang.',
-      },
-      {
-        'image': 'assets/images/pandan.png',
-        'title': 'Daun Pandan',
-        'description':
-            'Memberikan aroma khas yang menenangkan dan mengandung antioksidan alami yang baik untuk tubuh.',
-      },
-    ];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
-      child: Column(
-        children: [
-          Text(
-            "Kandungan Utama",
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Perpaduan bahan alami terbaik untuk kesehatan Anda.",
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.black54),
-          ),
-          const SizedBox(height: 32),
-          Wrap(
-            spacing: 16.0,
-            runSpacing: 16.0,
-            alignment: WrapAlignment.center,
-            children:
-                ingredients.map((item) => _buildIngredientCard(item)).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIngredientCard(Map<String, String> ingredient) {
-    return SizedBox(
-      width: 280,
-      child: Card(
-        color: Colors.white,
-        margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                ingredient['image']!,
-                height: 60,
-                width: 60,
-                fit: BoxFit.contain,
-                errorBuilder:
-                    (context, error, stackTrace) =>
-                        const Icon(Icons.grass, size: 60, color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                ingredient['title']!,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                ingredient['description']!,
-                style: TextStyle(color: Colors.grey.shade700, height: 1.4),
-              ),
-            ],
-          ),
+  Widget _buildFooterLink(String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white70, fontSize: 15),
         ),
       ),
     );
   }
 
-  Widget _buildIntroProductSection(BuildContext context) {
+  Widget _buildFooterColumn({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 24.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isDesktop = constraints.maxWidth > 700;
-
-          final imageWidget = ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Image.asset(
-              'assets/images/mdl2.jpg',
-              errorBuilder:
-                  (context, error, stackTrace) =>
-                      const Icon(Icons.image, size: 100),
-            ),
-          );
-
-          final textWidget = Column(
-            crossAxisAlignment:
-                isDesktop
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Pilihan Cerdas Hidup Sehat dan Aktif",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "New Mandala 525",
-                textAlign: isDesktop ? TextAlign.start : TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                "Minuman serbuk kedelai instan yang terbuat dari kacang kedelai pilihan. Minuman ini diproses secara alami dan mengandung protein nabati yang sangat tinggi, mengandung serat, asam lemak tak jenuh, zat besi, dan isoflavon. Baik untuk jantung, bantu turunkan kolesterol, dan menjaga daya tahan tubuh.",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  height: 1.6,
-                  color: Colors.black87,
-                ),
-                textAlign: isDesktop ? TextAlign.start : TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              TextButton.icon(
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  textStyle: Theme.of(context).textTheme.titleMedium,
-                ),
-                onPressed: () {
-                  widget.tabController.animateTo(1);
-                },
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text("Lihat Detail Produk"),
-              ),
-            ],
-          );
-
-          if (isDesktop) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(flex: 3, child: textWidget),
-                const SizedBox(width: 50),
-                Expanded(flex: 2, child: imageWidget),
-              ],
-            );
-          } else {
-            return Column(
-              children: [imageWidget, const SizedBox(height: 40), textWidget],
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      color: const Color(0xFF2E4843),
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSocialIcon(
-                'assets/images/facebook.png',
-                'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
-              ),
-              _buildSocialIcon(
-                'assets/images/instagram.png',
-                'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
-              ),
-              _buildSocialIcon(
-                'assets/images/yutub.png',
-                'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
-              ),
-              _buildSocialIcon(
-                'assets/images/tiktok.png',
-                'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
           Text(
-            "© 2025 New Mandala 525 | Website Resmi Produk",
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
+          const SizedBox(height: 12),
+          ...children,
         ],
       ),
     );
   }
 
-  Widget _buildSocialIcon(String assetPath, String linkUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: InkWell(
-        onTap: () async {
-          if (await canLaunchUrl(Uri.parse(linkUrl))) {
-            await launchUrl(
-              Uri.parse(linkUrl),
-              mode: LaunchMode.externalApplication,
-            );
-          }
-        },
-        child: Image.asset(
-          assetPath,
-          width: 40,
-          height: 40,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(Icons.link, color: Colors.white, size: 24);
-          },
+  Widget _buildFooter(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    final Widget exploreColumn = _buildFooterColumn(
+      title: "EXPLORE",
+      children: [
+        _buildFooterLink("Produk", () => widget.tabController.animateTo(1)),
+        _buildFooterLink("Testimoni", () => widget.tabController.animateTo(2)),
+      ],
+    );
+
+    final Widget shopColumn = _buildFooterColumn(
+      title: "SHOP",
+      children: [
+        _buildFooterLink(
+          "Distributor Resmi",
+          () => widget.tabController.animateTo(3),
+        ),
+        _buildFooterLink(
+          "Shopee",
+          () => _launchURL('https://shopee.co.id/newmandala525'),
+        ),
+        _buildFooterLink(
+          "Tokopedia",
+          () => _launchURL('https://www.tokopedia.com/newmandala525'),
+        ),
+        _buildFooterLink(
+          "Lazada",
+          () => _launchURL('https://www.lazada.co.id/shop/new-mandala-525'),
+        ),
+      ],
+    );
+
+    final Widget aboutColumn = _buildFooterColumn(
+      title: "ABOUT",
+      children: [
+        _buildFooterLink("Sejarah", () => widget.tabController.animateTo(5)),
+        _buildFooterLink("Blog", () => widget.tabController.animateTo(2)),
+        _buildFooterLink(
+          "Kontak",
+          () => _launchURL('https://wa.me/6281234567890'),
+        ),
+      ],
+    );
+
+    final Widget followColumn = _buildFooterColumn(
+      title: "FOLLOW",
+      children: [
+        _buildFooterLink(
+          "Instagram",
+          () => _launchURL(
+            'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
+          ),
+        ),
+        _buildFooterLink(
+          "TikTok",
+          () => _launchURL(
+            'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
+          ),
+        ),
+        _buildFooterLink(
+          "YouTube",
+          () => _launchURL(
+            'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
+          ),
+        ),
+        _buildFooterLink(
+          "Facebook",
+          () => _launchURL(
+            'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
+          ),
+        ),
+      ],
+    );
+
+    return Container(
+      color: const Color(0xFF2E4843),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: 40,
+        horizontal: isDesktop ? 48 : 16,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (isDesktop)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: exploreColumn),
+                    Expanded(child: shopColumn),
+                    Expanded(child: aboutColumn),
+                    Expanded(child: followColumn),
+                  ],
+                )
+              else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [exploreColumn, shopColumn],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [aboutColumn, followColumn],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 32),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 24),
+              Text(
+                "© 2025 New Mandala 525 | Website Resmi Produk",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

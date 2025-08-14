@@ -249,9 +249,9 @@ class _MainScreenState extends State<MainScreen>
                 // 1: Produk
                 ProductPage(tabController: _tabController),
                 // 2: Edukasi
-                const EdukasiPage(),
+                EdukasiPage(tabController: _tabController),
                 // 3: Artikel
-                const InspirationPage(),
+                InspirationPage(tabController: _tabController),
                 // 4: Beli Disini
                 const DistributionPage(),
                 // 5: Kontak

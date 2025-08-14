@@ -1,11 +1,30 @@
-// ignore_for_file: unnecessary_import, deprecated_member_use
+// ignore_for_file: unnecessary_import, deprecated_member_use, use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:url_launcher/url_launcher.dart';
 
-class InspirationPage extends StatelessWidget {
-  const InspirationPage({super.key});
+// Kelas helper untuk layout responsif
+class Responsive {
+  static bool isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 800;
+  static bool isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 800 &&
+      MediaQuery.of(context).size.width < 1200;
+  static bool isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1200;
+}
 
+// Mengubah menjadi StatefulWidget untuk menampung TabController
+class InspirationPage extends StatefulWidget {
+  final TabController tabController;
+  const InspirationPage({super.key, required this.tabController});
+
+  @override
+  State<InspirationPage> createState() => _InspirationPageState();
+}
+
+class _InspirationPageState extends State<InspirationPage> {
   final List<Map<String, String>> articles = const [
     {
       'image': 'assets/images/testimoni.jpg',
@@ -25,50 +44,100 @@ class InspirationPage extends StatelessWidget {
     },
   ];
 
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $url');
+    }
+  }
+
+  // Ganti metode build yang lama dengan yang ini
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Artikel & Testimoni"),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        centerTitle: true,
-      ),
-      backgroundColor: Colors.white, // Latar belakang utama putih
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth < 650) {
-            return buildListView(context);
-          } else {
-            return buildWrapLayout(context);
-          }
-        },
+      backgroundColor: Colors.grey[100],
+      // Body diubah menjadi Column untuk layout "sticky footer"
+      body: Column(
+        children: [
+          // Expanded membuat konten di dalamnya mengisi semua ruang vertikal yang tersisa
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Konten utama halaman
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1200),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 40),
+                          Text(
+                            "Artikel & Testimoni",
+                            style: Theme.of(
+                              context,
+                            ).textTheme.displaySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Kisah nyata dan inspirasi dari mereka yang telah merasakan manfaatnya.",
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: Colors.black54),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 40),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              if (constraints.maxWidth < 650) {
+                                return buildColumnLayout(context);
+                              } else {
+                                return buildWrapLayout(context);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Footer diletakkan di sini, di luar Expanded agar menempel di bawah
+          _buildFooter(context),
+        ],
       ),
     );
   }
 
-  Widget buildListView(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: articles.length,
-      itemBuilder: (context, index) {
-        final article = articles[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 20.0),
-          child: ArticleCard(article: article),
-        );
-      },
+  Widget buildColumnLayout(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children:
+            articles.map((article) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 24.0),
+                child: ArticleCard(article: article),
+              );
+            }).toList(),
+      ),
     );
   }
 
   Widget buildWrapLayout(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Center(
         child: Wrap(
           spacing: 24.0,
           runSpacing: 24.0,
-          alignment: WrapAlignment.start,
+          alignment: WrapAlignment.center,
           children:
               articles.map((article) {
                 return SizedBox(
@@ -76,6 +145,179 @@ class InspirationPage extends StatelessWidget {
                   child: ArticleCard(article: article),
                 );
               }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // === WIDGET FOOTER DAN HELPER-NYA DIBAWAH INI ===
+
+  Widget _buildFooterLink(String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white70, fontSize: 15),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooterColumn({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    final Widget exploreColumn = _buildFooterColumn(
+      title: "EXPLORE",
+      children: [
+        _buildFooterLink("Produk", () => widget.tabController.animateTo(1)),
+        _buildFooterLink("Testimoni", () => widget.tabController.animateTo(2)),
+      ],
+    );
+
+    final Widget shopColumn = _buildFooterColumn(
+      title: "SHOP",
+      children: [
+        _buildFooterLink(
+          "Distributor Resmi",
+          () => widget.tabController.animateTo(3),
+        ),
+        _buildFooterLink(
+          "Shopee",
+          () => _launchURL('https://shopee.co.id/newmandala525'),
+        ),
+        _buildFooterLink(
+          "Tokopedia",
+          () => _launchURL('https://www.tokopedia.com/newmandala525'),
+        ),
+        _buildFooterLink(
+          "Lazada",
+          () => _launchURL('https://www.lazada.co.id/shop/new-mandala-525'),
+        ),
+      ],
+    );
+
+    final Widget aboutColumn = _buildFooterColumn(
+      title: "ABOUT",
+      children: [
+        _buildFooterLink("Sejarah", () => widget.tabController.animateTo(5)),
+        _buildFooterLink("Blog", () => widget.tabController.animateTo(2)),
+        _buildFooterLink(
+          "Kontak",
+          () => _launchURL('https://wa.me/6281234567890'),
+        ),
+      ],
+    );
+
+    final Widget followColumn = _buildFooterColumn(
+      title: "FOLLOW",
+      children: [
+        _buildFooterLink(
+          "Instagram",
+          () => _launchURL(
+            'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
+          ),
+        ),
+        _buildFooterLink(
+          "TikTok",
+          () => _launchURL(
+            'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
+          ),
+        ),
+        _buildFooterLink(
+          "YouTube",
+          () => _launchURL(
+            'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
+          ),
+        ),
+        _buildFooterLink(
+          "Facebook",
+          () => _launchURL(
+            'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
+          ),
+        ),
+      ],
+    );
+
+    return Container(
+      color: const Color(0xFF2E4843),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: 40,
+        horizontal: isDesktop ? 48 : 16,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (isDesktop)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: exploreColumn),
+                    Expanded(child: shopColumn),
+                    Expanded(child: aboutColumn),
+                    Expanded(child: followColumn),
+                  ],
+                )
+              else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [exploreColumn, shopColumn],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [aboutColumn, followColumn],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 32),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 24),
+              Text(
+                "© 2025 New Mandala 525 | Website Resmi Produk",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -91,13 +333,11 @@ class ArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white, // Kartu berwarna putih
+      color: Colors.white,
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      elevation: 6, // Nilai shadow ditingkatkan agar terlihat
-      shadowColor: Colors.black.withOpacity(
-        0.15,
-      ), // Warna shadow dengan opasitas
+      elevation: 6,
+      shadowColor: Colors.black.withOpacity(0.15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
         onTap: () {
@@ -185,7 +425,7 @@ class ArticleDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Latar belakang detail putih
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           article['title']!,
@@ -201,12 +441,10 @@ class ArticleDetailPage extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Card(
-              color: Colors.white, // Kartu detail berwarna putih
+              color: Colors.white,
               clipBehavior: Clip.antiAlias,
-              elevation: 6, // Nilai shadow ditingkatkan agar terlihat
-              shadowColor: Colors.black.withOpacity(
-                0.15,
-              ), // Warna shadow dengan opasitas
+              elevation: 6,
+              shadowColor: Colors.black.withOpacity(0.15),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),

@@ -4,7 +4,12 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ProductPage extends StatefulWidget {
+class
+/// The above code appears to be a comment in Dart programming language. It starts with /// which
+/// is used for documentation comments in Dart. The text "ProductPage" seems to be a heading or
+/// title for the documentation. The
+ProductPage
+    extends StatefulWidget {
   const ProductPage({super.key, required this.tabController});
   final TabController tabController;
 
@@ -12,29 +17,54 @@ class ProductPage extends StatefulWidget {
   State<ProductPage> createState() => _ProductPageState();
 }
 
+class Responsive {
+  static bool isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 800;
+  static bool isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 800 &&
+      MediaQuery.of(context).size.width < 1200;
+  static bool isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1200;
+}
+
 class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // _buildHomepageBanner(context),
-              // const SizedBox(height: 30),
-              _buildIntroductionSection(context),
-              const SizedBox(height: 30),
-              _buildKeyIngredientsSection(context),
-              _buildServingMethodSection(context),
-              _buildCertificationSection(context),
-              _buildProductBundleSection(context),
-              _buildFooter(context),
-            ],
+    // MODIFIED: Struktur diubah agar footer bisa full-width
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Bagian ini untuk konten utama yang lebarnya dibatasi
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Column(
+                children: [
+                  _buildIntroductionSection(context),
+                  const SizedBox(height: 30),
+                  _buildKeyIngredientsSection(context),
+                  _buildServingMethodSection(context),
+                  // _buildCertificationSection(context),
+                  _buildProductBundleSection(context),
+                  // Footer dipindahkan dari sini
+                ],
+              ),
+            ),
           ),
-        ),
+          // Footer diletakkan di sini, di luar ConstrainedBox agar tidak terbatas
+          _buildFooter(context),
+        ],
       ),
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $url');
+    }
   }
 
   Widget _buildIntroductionSection(BuildContext context) {
@@ -396,6 +426,7 @@ class _ProductPageState extends State<ProductPage> {
     ];
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 24),
       color: const Color(0xFFF7EFE5), // Warna latar yang lembut
       child: Column(
@@ -539,145 +570,216 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget _buildCertificationSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-      color: const Color(0xFFF7EFE5),
-      child: Center(
-        child: Column(
-          children: [
-            Text(
-              "Tersertifikasi & Terpercaya",
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "Produk kami telah terdaftar resmi, aman untuk dikonsumsi.",
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Image.asset(
-              'assets/images/bpom_logo.png',
-              height: 60,
-              errorBuilder:
-                  (context, error, stackTrace) =>
-                      const Icon(Icons.verified, size: 60, color: Colors.green),
-            ),
-          ],
+  // Widget _buildCertificationSection(BuildContext context) {
+  //   return Container(
+  //     width: double.infinity,
+  //     padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+  //     color: const Color(0xFFF7EFE5),
+  //     child: Center(
+  //       child: Column(
+  //         children: [
+  //           Text(
+  //             "Tersertifikasi & Terpercaya",
+  //             style: Theme.of(context).textTheme.headlineMedium,
+  //           ),
+  //           const SizedBox(height: 16),
+  //           Text(
+  //             "Produk kami telah terdaftar resmi, aman untuk dikonsumsi.",
+  //             style: Theme.of(context).textTheme.bodyLarge,
+  //             textAlign: TextAlign.center,
+  //           ),
+  //           const SizedBox(height: 24),
+  //           Image.asset(
+  //             'assets/images/bpom_logo.png',
+  //             height: 60,
+  //             errorBuilder:
+  //                 (context, error, stackTrace) =>
+  //                     const Icon(Icons.verified, size: 60, color: Colors.green),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _buildFooterLink(String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white70, fontSize: 15),
         ),
       ),
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      color: const Color(0xFF2E4843),
-      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
+  // Widget untuk membuat kolom di footer
+  Widget _buildFooterColumn({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSocialIcon(
-                'assets/images/facebook.png',
-                'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
-              ),
-              _buildSocialIcon(
-                'assets/images/instagram.png',
-                'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
-              ),
-              _buildSocialIcon(
-                'assets/images/yutub.png',
-                'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
-              ),
-              _buildSocialIcon(
-                'assets/images/tiktok.png',
-                'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
           Text(
-            "© 2025 New Mandala 525 | Website Resmi Produk",
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
+          const SizedBox(height: 12),
+          ...children,
         ],
       ),
     );
   }
 
-  // Widget _buildHomepageBanner(BuildContext context) {
-  //   final List<Map<String, String>> banners = [
-  //     {'background': 'assets/images/produk.jpeg'},
-  //     {'background': 'assets/images/kandungan.jpeg'},
-  //     {'background': 'assets/images/gejala.jpeg'},
-  //   ];
+  // MODIFIED: Widget footer diubah total
+  Widget _buildFooter(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
 
-  //   return CarouselSlider.builder(
-  //     itemCount: banners.length,
-  //     options: CarouselOptions(
-  //       height: 350,
-  //       autoPlay: banners.length > 1,
-  //       autoPlayInterval: const Duration(seconds: 4),
-  //       viewportFraction: 1.0,
-  //     ),
-  //     itemBuilder: (context, index, realIndex) {
-  //       final banner = banners[index];
-  //       return Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-  //         child: Card(
-  //           margin: const EdgeInsets.symmetric(vertical: 4.0),
-  //           elevation: 4,
-  //           shadowColor: Colors.black.withOpacity(0.2),
-  //           clipBehavior: Clip.antiAlias,
-  //           shape: RoundedRectangleBorder(
-  //             borderRadius: BorderRadius.circular(15.0),
-  //           ),
-  //           child: Stack(
-  //             fit: StackFit.expand,
-  //             children: [
-  //               Image.asset(
-  //                 banner['background']!,
-  //                 fit: BoxFit.cover,
-  //                 errorBuilder:
-  //                     (context, error, stackTrace) => const Center(
-  //                       child: Icon(
-  //                         Icons.broken_image_outlined,
-  //                         color: Colors.grey,
-  //                         size: 50,
-  //                       ),
-  //                     ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
+    // --- Mendefinisikan konten untuk setiap kolom ---
 
-  Widget _buildSocialIcon(String assetPath, String linkUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: InkWell(
-        onTap: () async {
-          if (await canLaunchUrl(Uri.parse(linkUrl))) {
-            await launchUrl(
-              Uri.parse(linkUrl),
-              mode: LaunchMode.externalApplication,
-            );
-          }
-        },
-        child: Image.asset(
-          assetPath,
-          width: 50,
-          height: 50,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(Icons.link, color: Colors.white, size: 24);
-          },
+    final Widget exploreColumn = _buildFooterColumn(
+      title: "EXPLORE",
+      children: [
+        _buildFooterLink("Produk", () => widget.tabController.animateTo(1)),
+        _buildFooterLink("Testimoni", () => widget.tabController.animateTo(3)),
+      ],
+    );
+
+    final Widget shopColumn = _buildFooterColumn(
+      title: "SHOP",
+      children: [
+        _buildFooterLink(
+          "Distributor Resmi",
+          () => widget.tabController.animateTo(4),
+        ),
+        _buildFooterLink(
+          "Shopee",
+          () => _launchURL('https://shopee.co.id/newmandala525'),
+        ),
+        _buildFooterLink(
+          "Tokopedia",
+          () => _launchURL('https://www.tokopedia.com/newmandala525'),
+        ),
+        _buildFooterLink(
+          "Lazada",
+          () => _launchURL('https://www.lazada.co.id/shop/new-mandala-525'),
+        ),
+      ],
+    );
+
+    final Widget aboutColumn = _buildFooterColumn(
+      title: "ABOUT",
+      children: [
+        _buildFooterLink(
+          "Sejarah",
+          () => widget.tabController.animateTo(5),
+        ), // Asumsi index 5
+        _buildFooterLink("Blog", () => widget.tabController.animateTo(2)),
+        _buildFooterLink(
+          "Kontak",
+          () => _launchURL('https://wa.me/6281234567890'),
+        ), // Ganti nomor WA
+      ],
+    );
+
+    // MODIFIED: Bagian "FOLLOW" diubah menjadi teks
+    final Widget followColumn = _buildFooterColumn(
+      title: "FOLLOW",
+      children: [
+        _buildFooterLink(
+          "Instagram",
+          () => _launchURL(
+            'https://www.instagram.com/newmandala525_?igsh=dDUzcDR2ZHo5dWdo',
+          ),
+        ),
+        _buildFooterLink(
+          "TikTok",
+          () => _launchURL(
+            'https://www.tiktok.com/@newmdl525?_t=ZS-8x6zbRfI6AT&_r=1',
+          ),
+        ),
+        _buildFooterLink(
+          "YouTube",
+          () => _launchURL(
+            'https://youtube.com/@newmandala525?si=n98aLsVJQOvZq-10',
+          ),
+        ),
+        _buildFooterLink(
+          "Facebook",
+          () => _launchURL(
+            'https://www.facebook.com/share/1ASGiheM7B/?mibextid=wwXIfr',
+          ),
+        ),
+      ],
+    );
+
+    // --- Membangun tata letak berdasarkan ukuran layar ---
+
+    return Container(
+      color: const Color(0xFF2E4843),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: 40,
+        horizontal: isDesktop ? 48 : 16,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (isDesktop)
+                // Layout untuk Desktop: 4 kolom sejajar
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: exploreColumn),
+                    Expanded(child: shopColumn),
+                    Expanded(child: aboutColumn),
+                    Expanded(child: followColumn),
+                  ],
+                )
+              else
+                // MODIFIED: Layout untuk Mobile/Tablet: 2x2 kolom
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [exploreColumn, shopColumn],
+                      ),
+                    ),
+                    const SizedBox(width: 16), // Jarak antar kolom utama
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [aboutColumn, followColumn],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 32),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 24),
+              Text(
+                "© 2025 New Mandala 525 | Website Resmi Produk",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
