@@ -53,67 +53,63 @@ class _InspirationPageState extends State<InspirationPage> {
     }
   }
 
-  // Ganti metode build yang lama dengan yang ini
+  // === PERUBAHAN UTAMA DI SINI ===
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      // Body diubah menjadi Column untuk layout "sticky footer"
-      body: Column(
-        children: [
-          // Expanded membuat konten di dalamnya mengisi semua ruang vertikal yang tersisa
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Konten utama halaman
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1200),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 40),
-                          Text(
-                            "Artikel & Testimoni",
-                            style: Theme.of(
-                              context,
-                            ).textTheme.displaySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 28,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Kisah nyata dan inspirasi dari mereka yang telah merasakan manfaatnya.",
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(color: Colors.black54),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 40),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              if (constraints.maxWidth < 650) {
-                                return buildColumnLayout(context);
-                              } else {
-                                return buildWrapLayout(context);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 40),
-                        ],
+      // Body tidak lagi menggunakan Column, langsung ke SingleChildScrollView
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Konten utama halaman (artikel, testimoni, dll)
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+                    Text(
+                      "Artikel & Testimoni",
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Text(
+                      "Kisah nyata dan inspirasi dari mereka yang telah merasakan manfaatnya.",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleMedium?.copyWith(color: Colors.black54),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < 650) {
+                          return buildColumnLayout(context);
+                        } else {
+                          return buildWrapLayout(context);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
-          ),
-          // Footer diletakkan di sini, di luar Expanded agar menempel di bawah
-          _buildFooter(context),
-        ],
+
+            // Footer dipindahkan ke sini, menjadi bagian akhir dari Column
+            // yang bisa di-scroll.
+            _buildFooter(context),
+          ],
+        ),
       ),
     );
   }
+
+  // Sisa kode lainnya tetap sama
 
   Widget buildColumnLayout(BuildContext context) {
     return Padding(
@@ -150,7 +146,7 @@ class _InspirationPageState extends State<InspirationPage> {
     );
   }
 
-  // === WIDGET FOOTER DAN HELPER-NYA DIBAWAH INI ===
+  // === WIDGET FOOTER DAN HELPER-NYA (TIDAK BERUBAH) ===
 
   Widget _buildFooterLink(String text, VoidCallback onTap) {
     return InkWell(
